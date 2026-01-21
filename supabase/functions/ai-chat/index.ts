@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +13,7 @@ interface Message {
 
 interface ChatRequest {
   messages: { role: "user" | "assistant"; content: string }[];
-  courseContext?: string;
+  courseId?: string;
 }
 
 serve(async (req) => {
@@ -27,7 +28,52 @@ serve(async (req) => {
       throw new Error("GEMINI_API_KEY is not configured");
     }
 
-    const { messages, courseContext }: ChatRequest = await req.json();
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    const { messages, courseId }: ChatRequest = await req.json();
+
+    // Fetch course information and materials
+    let courseContext = "";
+    let courseName = "the course";
+
+    if (courseId) {
+      // Fetch course details
+      const { data: course } = await supabase
+        .from('courses')
+        .select('title, code, description, syllabus, learning_outcomes')
+        .eq('id', courseId)
+        .single();
+
+      if (course) {
+        courseName = `${course.title} (${course.code})`;
+        courseContext = `
+**Course Information:**
+- Title: ${course.title}
+- Code: ${course.code}
+- Description: ${course.description || 'N/A'}
+- Syllabus: ${course.syllabus || 'N/A'}
+- Learning Outcomes: ${course.learning_outcomes || 'N/A'}
+`;
+      }
+
+      // Fetch all processed course materials
+      const { data: materials } = await supabase
+        .from('course_materials')
+        .select('title, content_text, material_type')
+        .eq('course_id', courseId)
+        .eq('is_processed', true)
+        .not('content_text', 'is', null);
+
+      if (materials && materials.length > 0) {
+        courseContext += "\n\n**Course Materials:**\n";
+        for (const material of materials) {
+          courseContext += `\n### ${material.title} (${material.material_type || 'general'})\n`;
+          courseContext += material.content_text + "\n";
+        }
+      }
+    }
 
     // Convert messages to Gemini format
     const geminiMessages: Message[] = messages.map((msg) => ({
@@ -36,18 +82,23 @@ serve(async (req) => {
     }));
 
     // Build system instruction for AI tutor
-    const systemInstruction = `You are an intelligent AI teaching assistant designed to support students in their learning journey. Your role is to:
+    const systemInstruction = `You are an intelligent AI teaching assistant for ${courseName}. Your role is to:
 
 1. **Answer Questions**: Provide clear, accurate, and helpful explanations to student questions about course material.
-2. **Guide Learning**: Don't just give answers - help students understand concepts by breaking them down and providing examples.
-3. **Stay On Topic**: Focus your responses on the course context and educational material provided.
-4. **Encourage Critical Thinking**: Ask follow-up questions to help students think deeper about concepts.
-5. **Be Supportive**: Maintain an encouraging and patient tone, especially when students struggle with difficult concepts.
-6. **Provide Examples**: Use practical examples and analogies to explain complex topics.
+2. **Use Course Materials**: Base your answers primarily on the course materials provided below. If information is not in the materials, clearly state that.
+3. **Guide Learning**: Don't just give answers - help students understand concepts by breaking them down and providing examples.
+4. **Stay On Topic**: Focus your responses ONLY on the course context and materials provided. Politely redirect off-topic questions.
+5. **Encourage Critical Thinking**: Ask follow-up questions to help students think deeper about concepts.
+6. **Be Supportive**: Maintain an encouraging and patient tone, especially when students struggle with difficult concepts.
+7. **Provide Examples**: Use practical examples and analogies to explain complex topics.
 
-${courseContext ? `\n**Course Context:**\n${courseContext}` : ""}
+${courseContext}
 
-Remember: You are an educational assistant. Never provide answers to exams or assignments that students should complete independently. Instead, guide them to understand the concepts so they can solve problems themselves.`;
+IMPORTANT RULES:
+- Only answer questions related to the course content above.
+- If a question is outside the course scope, politely explain that you can only help with course-related topics.
+- Never provide answers to exams or assignments that students should complete independently.
+- If course materials don't cover a topic, say "This topic isn't covered in the course materials I have access to."`;
 
     // Call Gemini API
     const response = await fetch(

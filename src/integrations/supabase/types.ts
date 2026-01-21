@@ -178,6 +178,7 @@ export type Database = {
       }
       course_materials: {
         Row: {
+          content_text: string | null
           course_id: string
           file_type: Database["public"]["Enums"]["file_type"] | null
           file_url: string | null
@@ -188,6 +189,7 @@ export type Database = {
           uploaded_at: string
         }
         Insert: {
+          content_text?: string | null
           course_id: string
           file_type?: Database["public"]["Enums"]["file_type"] | null
           file_url?: string | null
@@ -198,6 +200,7 @@ export type Database = {
           uploaded_at?: string
         }
         Update: {
+          content_text?: string | null
           course_id?: string
           file_type?: Database["public"]["Enums"]["file_type"] | null
           file_url?: string | null
