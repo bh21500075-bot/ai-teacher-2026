@@ -1,0 +1,120 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GraduationCap, User, AlertCircle } from 'lucide-react';
+
+const Login = () => {
+  const [userId, setUserId] = useState('');
+  const [error, setError] = useState('');
+  const { login, user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    
+    if (!userId.trim()) {
+      setError('الرجاء إدخال رقم الهوية');
+      return;
+    }
+
+    login(userId);
+  };
+
+  // Redirect after successful login
+  if (user) {
+    if (user.role === 'teacher') {
+      navigate('/teacher');
+    } else {
+      navigate('/student');
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/30 flex items-center justify-center p-4">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
+      </div>
+
+      <Card className="w-full max-w-md relative z-10 shadow-xl border-0">
+        <CardHeader className="text-center space-y-4 pb-2">
+          {/* Logo */}
+          <div className="mx-auto w-20 h-20 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
+            <GraduationCap className="w-10 h-10 text-primary-foreground" />
+          </div>
+          
+          <div>
+            <CardTitle className="text-3xl font-bold text-primary">
+              MENTOR AI
+            </CardTitle>
+            <CardDescription className="text-base mt-2">
+              AI Teaching Agent for Student Support
+            </CardDescription>
+          </div>
+
+          {/* University Badge */}
+          <div className="inline-flex items-center gap-2 bg-secondary/50 px-4 py-2 rounded-full text-sm text-muted-foreground">
+            <GraduationCap className="w-4 h-4" />
+            University of Technology Bahrain
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-6 pt-6">
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                رقم الهوية / User ID
+              </label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="T001 أو S001"
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                  className="pl-10 h-12 text-lg"
+                  dir="ltr"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 p-3 rounded-lg">
+                <AlertCircle className="w-4 h-4" />
+                {error}
+              </div>
+            )}
+
+            <Button type="submit" className="w-full h-12 text-lg font-semibold">
+              تسجيل الدخول
+            </Button>
+          </form>
+
+          {/* Demo accounts hint */}
+          <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+            <p className="text-sm font-medium text-muted-foreground text-center">
+              حسابات تجريبية للاختبار:
+            </p>
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-background rounded-md p-2 text-center">
+                <span className="font-mono font-bold text-primary">T001</span>
+                <span className="text-muted-foreground block">مدرس</span>
+              </div>
+              <div className="bg-background rounded-md p-2 text-center">
+                <span className="font-mono font-bold text-primary">S001</span>
+                <span className="text-muted-foreground block">طالب</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+export default Login;
