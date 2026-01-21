@@ -14,6 +14,89 @@ interface Message {
 interface ChatRequest {
   messages: { role: "user" | "assistant"; content: string }[];
   courseId?: string;
+  enableWebSearch?: boolean;
+}
+
+interface SearchResult {
+  url: string;
+  title: string;
+  description?: string;
+  markdown?: string;
+}
+
+// Keywords that suggest student needs practical examples
+const EXAMPLE_KEYWORDS = [
+  'example', 'code', 'how to', 'implement', 'build', 'create', 'make',
+  'project', 'tutorial', 'sample', 'demo', 'practice', 'arduino', 'raspberry',
+  'circuit', 'sensor', 'motor', 'led', 'programming', 'sketch', 'library'
+];
+
+function shouldSearchWeb(userMessage: string): boolean {
+  const lowerMessage = userMessage.toLowerCase();
+  return EXAMPLE_KEYWORDS.some(keyword => lowerMessage.includes(keyword));
+}
+
+async function searchWeb(query: string, apiKey: string): Promise<string> {
+  try {
+    const targetSites = [
+      'github.com',
+      'instructables.com',
+      'arduino.cc',
+      'hackster.io',
+      'stackoverflow.com'
+    ];
+
+    const siteQuery = `${query} (${targetSites.map(s => `site:${s}`).join(' OR ')})`;
+    
+    console.log('Web search query:', siteQuery);
+
+    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: siteQuery,
+        limit: 3,
+        scrapeOptions: {
+          formats: ['markdown'],
+          onlyMainContent: true,
+        },
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Web search failed:', response.status);
+      return '';
+    }
+
+    const data = await response.json();
+    const results: SearchResult[] = (data.data || []).map((item: any) => ({
+      url: item.url,
+      title: item.metadata?.title || item.title || 'Untitled',
+      markdown: item.markdown ? item.markdown.substring(0, 2000) : null,
+    }));
+
+    if (results.length === 0) {
+      return '';
+    }
+
+    let webContext = '\n\n**External Resources (GitHub, Instructables, etc.):**\n';
+    for (const result of results) {
+      webContext += `\n### ${result.title}\n`;
+      webContext += `Source: ${result.url}\n`;
+      if (result.markdown) {
+        webContext += `${result.markdown}\n`;
+      }
+    }
+
+    console.log(`Found ${results.length} web results`);
+    return webContext;
+  } catch (error) {
+    console.error('Web search error:', error);
+    return '';
+  }
 }
 
 serve(async (req) => {
@@ -32,7 +115,7 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { messages, courseId }: ChatRequest = await req.json();
+    const { messages, courseId, enableWebSearch = true }: ChatRequest = await req.json();
 
     // Fetch course information and materials
     let courseContext = "";
@@ -75,30 +158,49 @@ serve(async (req) => {
       }
     }
 
+    // Get the latest user message for web search
+    const latestUserMessage = messages.filter(m => m.role === 'user').pop()?.content || '';
+    
+    // Web search for practical examples if enabled and relevant
+    let webContext = '';
+    const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
+    
+    if (enableWebSearch && firecrawlApiKey && shouldSearchWeb(latestUserMessage)) {
+      console.log('Searching web for practical examples...');
+      webContext = await searchWeb(latestUserMessage, firecrawlApiKey);
+    }
+
     // Convert messages to Gemini format
     const geminiMessages: Message[] = messages.map((msg) => ({
       role: msg.role === "assistant" ? "model" : "user",
       parts: [{ text: msg.content }],
     }));
 
-    // Build system instruction for AI tutor
+    // Build system instruction for AI tutor with web search capabilities
     const systemInstruction = `You are an intelligent AI teaching assistant for ${courseName}. Your role is to:
 
 1. **Answer Questions**: Provide clear, accurate, and helpful explanations to student questions about course material.
-2. **Use Course Materials**: Base your answers primarily on the course materials provided below. If information is not in the materials, clearly state that.
-3. **Guide Learning**: Don't just give answers - help students understand concepts by breaking them down and providing examples.
-4. **Stay On Topic**: Focus your responses ONLY on the course context and materials provided. Politely redirect off-topic questions.
-5. **Encourage Critical Thinking**: Ask follow-up questions to help students think deeper about concepts.
-6. **Be Supportive**: Maintain an encouraging and patient tone, especially when students struggle with difficult concepts.
-7. **Provide Examples**: Use practical examples and analogies to explain complex topics.
+2. **Use Course Materials**: Base your answers primarily on the course materials provided below.
+3. **Provide Practical Examples**: When students ask for examples, code, or how to implement something:
+   - Include code snippets with proper syntax highlighting
+   - Reference external resources from GitHub, Instructables, Arduino.cc when available
+   - **Always cite source URLs** for external content
+   - Explain how examples relate to course concepts
+4. **Guide Learning**: Help students understand concepts by breaking them down and providing analogies.
+5. **Stay On Topic**: Focus on course context and related practical applications.
+6. **Encourage Critical Thinking**: Ask follow-up questions to help students think deeper.
+7. **Be Supportive**: Maintain an encouraging and patient tone.
 
 ${courseContext}
+${webContext}
 
 IMPORTANT RULES:
-- Only answer questions related to the course content above.
-- If a question is outside the course scope, politely explain that you can only help with course-related topics.
-- Never provide answers to exams or assignments that students should complete independently.
-- If course materials don't cover a topic, say "This topic isn't covered in the course materials I have access to."`;
+- When providing code examples, format them in proper code blocks with the language specified.
+- If you reference external resources, always include the source URL.
+- For GitHub code, explain what the code does and how it applies to the student's question.
+- For Instructables/Hackster projects, summarize the key steps and components needed.
+- Never provide direct answers to exams or graded assignments.
+- If course materials don't cover a topic but external resources do, explain the connection to course concepts.`;
 
     // Call Gemini API
     const response = await fetch(
