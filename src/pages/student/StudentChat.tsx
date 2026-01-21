@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Send, Sparkles, BookOpen, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -19,6 +20,7 @@ interface Course {
 }
 
 const StudentChat = () => {
+  const { user: authUser } = useAuth();
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,60 +37,38 @@ const StudentChat = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Fetch enrolled course on mount
+  // Fetch course on mount
   useEffect(() => {
-    fetchEnrolledCourse();
+    fetchCourse();
   }, []);
 
-  const fetchEnrolledCourse = async () => {
+  const fetchCourse = async () => {
     try {
       setIsLoadingCourse(true);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get student's enrolled course
-      const { data: enrollments, error: enrollError } = await supabase
-        .from('enrollments')
-        .select(`
-          course_id,
-          courses:course_id (id, title, code)
-        `)
-        .eq('student_id', user.id)
-        .eq('status', 'active')
+      
+      // For demo system, directly fetch any active course
+      const { data: courses, error } = await supabase
+        .from('courses')
+        .select('id, title, code')
+        .eq('is_active', true)
         .limit(1);
 
-      if (enrollError) {
-        console.error('Enrollment fetch error:', enrollError);
+      if (error) {
+        console.error('Course fetch error:', error);
         return;
       }
 
-      if (enrollments && enrollments.length > 0 && enrollments[0].courses) {
-        const courseData = enrollments[0].courses as unknown as Course;
-        setCourse(courseData);
+      if (courses && courses.length > 0) {
+        setCourse(courses[0]);
         setMessages([{
           role: 'assistant',
-          content: `Hello! I'm EduBot, your AI Tutor for "${courseData.title}" (${courseData.code}). How can I help you today? I can answer questions based on the course materials uploaded by your instructor.`
+          content: `Hello! I'm EduBot, your AI Tutor for "${courses[0].title}" (${courses[0].code}). How can I help you today? I can answer questions based on the course materials uploaded by your instructor.`
         }]);
       } else {
-        // Fallback: get any active course
-        const { data: courses } = await supabase
-          .from('courses')
-          .select('id, title, code')
-          .eq('is_active', true)
-          .limit(1);
-
-        if (courses && courses.length > 0) {
-          setCourse(courses[0]);
-          setMessages([{
-            role: 'assistant',
-            content: `Hello! I'm EduBot, your AI Tutor for "${courses[0].title}" (${courses[0].code}). How can I help you today? I can answer questions based on the course materials.`
-          }]);
-        } else {
-          setMessages([{
-            role: 'assistant',
-            content: `Hello! I'm EduBot, your AI Tutor. No course is currently assigned. Please contact your instructor for enrollment.`
-          }]);
-        }
+        setMessages([{
+          role: 'assistant',
+          content: `Hello! I'm EduBot, your AI Tutor. No course is currently available. Please contact your instructor.`
+        }]);
       }
     } catch (error) {
       console.error('Error fetching course:', error);
