@@ -8,7 +8,7 @@ import { MessageSquare, Send, Mic, Sparkles, BookOpen } from 'lucide-react';
 const StudentChat = () => {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([
-    { role: 'ai', content: 'مرحباً! أنا المعلم الذكي الخاص بمقرر "مقدمة في البرمجة". كيف يمكنني مساعدتك اليوم؟ يمكنني الإجابة على أسئلتك المتعلقة بمحتوى المقرر فقط.' },
+    { role: 'ai', content: 'Hello! I\'m the AI Tutor for "Introduction to Programming". How can I help you today? I can answer questions related to the course content only.' },
   ]);
 
   const handleSend = () => {
@@ -19,13 +19,13 @@ const StudentChat = () => {
     setTimeout(() => {
       setMessages(prev => [...prev, { 
         role: 'ai', 
-        content: 'شكراً على سؤالك! هذه إجابة تجريبية من المعلم الذكي. في النظام الفعلي، سيتم تحليل سؤالك والإجابة بناءً على محتوى المقرر المرفوع.' 
+        content: 'Thank you for your question! This is a demo response from the AI Tutor. In the actual system, your question will be analyzed and answered based on the uploaded course content.' 
       }]);
     }, 1000);
   };
 
   return (
-    <DashboardLayout title="المعلم الذكي">
+    <DashboardLayout title="AI Tutor">
       <div className="h-[calc(100vh-8rem)] flex flex-col">
         {/* Header */}
         <Card className="border-0 shadow-sm mb-4">
@@ -35,10 +35,10 @@ const StudentChat = () => {
                 <Sparkles className="w-6 h-6 text-primary-foreground" />
               </div>
               <div>
-                <h2 className="font-semibold">MENTOR AI</h2>
+                <h2 className="font-semibold">EduBot AI</h2>
                 <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <BookOpen className="w-4 h-4" />
-                  مقرر: مقدمة في البرمجة - ITCS101
+                  Course: Introduction to Programming - ITCS101
                 </p>
               </div>
             </div>
@@ -57,7 +57,7 @@ const StudentChat = () => {
                 {msg.role === 'ai' && (
                   <div className="flex items-center gap-2 mb-2">
                     <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">المعلم الذكي</span>
+                    <span className="text-sm font-medium text-primary">AI Tutor</span>
                   </div>
                 )}
                 <p className="leading-relaxed">{msg.content}</p>
@@ -74,7 +74,7 @@ const StudentChat = () => {
                 <Mic className="w-5 h-5" />
               </Button>
               <Input
-                placeholder="اكتب سؤالك هنا..."
+                placeholder="Type your question here..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -85,7 +85,7 @@ const StudentChat = () => {
               </Button>
             </div>
             <p className="text-xs text-muted-foreground text-center mt-2">
-              الأسئلة مقيدة بمحتوى المقرر الدراسي فقط
+              Questions are limited to course content only
             </p>
           </CardContent>
         </Card>

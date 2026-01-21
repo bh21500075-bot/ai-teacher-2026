@@ -19,11 +19,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Mock users data based on the project report
 const mockUsers: Record<string, User> = {
-  'T001': { id: 'T001', name: 'د. أحمد المحمود', role: 'teacher' },
+  'T001': { id: 'T001', name: 'Dr. Ahmed Al-Mahmoud', role: 'teacher' },
   'T002': { id: 'T002', name: 'Dr. Sarah Johnson', role: 'teacher' },
-  'S001': { id: 'S001', name: 'علي عبدالعزيز', role: 'student' },
-  'S002': { id: 'S002', name: 'محمد الأحمد', role: 'student' },
-  'S003': { id: 'S003', name: 'فاطمة العلي', role: 'student' },
+  'S001': { id: 'S001', name: 'Ali Abdulaziz', role: 'student' },
+  'S002': { id: 'S002', name: 'Mohammed Al-Ahmed', role: 'student' },
+  'S003': { id: 'S003', name: 'Fatima Al-Ali', role: 'student' },
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {

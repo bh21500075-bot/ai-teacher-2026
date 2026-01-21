@@ -18,33 +18,33 @@ const StudentDashboard = () => {
   const courseProgress = 68;
   
   const upcomingTasks = [
-    { type: 'assignment', title: 'واجب 3: الجمل الشرطية', due: 'غداً', urgent: true },
-    { type: 'quiz', title: 'اختبار الأسبوع 4', due: 'بعد 3 أيام', urgent: false },
+    { type: 'assignment', title: 'Assignment 3: Conditional Statements', due: 'Tomorrow', urgent: true },
+    { type: 'quiz', title: 'Week 4 Quiz', due: 'In 3 days', urgent: false },
   ];
 
   const recentGrades = [
-    { title: 'واجب 2', grade: 88, maxGrade: 100 },
-    { title: 'اختبار الأسبوع 2', grade: 82, maxGrade: 100 },
-    { title: 'واجب 1', grade: 95, maxGrade: 100 },
+    { title: 'Assignment 2', grade: 88, maxGrade: 100 },
+    { title: 'Week 2 Quiz', grade: 82, maxGrade: 100 },
+    { title: 'Assignment 1', grade: 95, maxGrade: 100 },
   ];
 
   const notifications = [
-    { text: 'تم نشر درجة واجب 2', time: 'منذ ساعة' },
-    { text: 'محتوى جديد: الأسبوع 4', time: 'منذ 3 ساعات' },
-    { text: 'تذكير: موعد تسليم واجب 3', time: 'أمس' },
+    { text: 'Assignment 2 grade published', time: '1 hour ago' },
+    { text: 'New content: Week 4', time: '3 hours ago' },
+    { text: 'Reminder: Assignment 3 due soon', time: 'Yesterday' },
   ];
 
   return (
-    <DashboardLayout title="الرئيسية">
+    <DashboardLayout title="Dashboard">
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-6 text-primary-foreground">
-          <h2 className="text-2xl font-bold mb-2">مرحباً، علي عبدالعزيز 👋</h2>
-          <p className="opacity-90 mb-4">استمر في التعلم! لديك واجب مستحق غداً</p>
+          <h2 className="text-2xl font-bold mb-2">Welcome, Ali Abdulaziz 👋</h2>
+          <p className="opacity-90 mb-4">Keep learning! You have an assignment due tomorrow</p>
           
           <div className="bg-white/20 rounded-xl p-4 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm">تقدمك في المقرر</span>
+              <span className="text-sm">Your Course Progress</span>
               <span className="font-bold">{courseProgress}%</span>
             </div>
             <Progress value={courseProgress} className="h-3 bg-white/30" />
@@ -59,7 +59,7 @@ const StudentDashboard = () => {
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <BookOpen className="w-6 h-6 text-primary" />
                 </div>
-                <p className="font-medium">الدروس</p>
+                <p className="font-medium">Lessons</p>
               </CardContent>
             </Card>
           </Link>
@@ -70,7 +70,7 @@ const StudentDashboard = () => {
                 <div className="w-12 h-12 bg-warning/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <ClipboardList className="w-6 h-6 text-warning" />
                 </div>
-                <p className="font-medium">الواجبات</p>
+                <p className="font-medium">Assignments</p>
               </CardContent>
             </Card>
           </Link>
@@ -81,7 +81,7 @@ const StudentDashboard = () => {
                 <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                   <CheckCircle className="w-6 h-6 text-success" />
                 </div>
-                <p className="font-medium">الاختبارات</p>
+                <p className="font-medium">Quizzes</p>
               </CardContent>
             </Card>
           </Link>
@@ -92,7 +92,7 @@ const StudentDashboard = () => {
                 <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mx-auto mb-3">
                   <MessageSquare className="w-6 h-6 text-primary-foreground" />
                 </div>
-                <p className="font-medium">المعلم الذكي</p>
+                <p className="font-medium">AI Tutor</p>
               </CardContent>
             </Card>
           </Link>
@@ -104,7 +104,7 @@ const StudentDashboard = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Clock className="w-5 h-5 text-muted-foreground" />
-                المهام القادمة
+                Upcoming Tasks
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -129,7 +129,7 @@ const StudentDashboard = () => {
                     </div>
                   </div>
                   <Button size="sm" variant={task.urgent ? 'default' : 'outline'}>
-                    ابدأ
+                    Start
                   </Button>
                 </div>
               ))}
@@ -142,10 +142,10 @@ const StudentDashboard = () => {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Award className="w-5 h-5 text-muted-foreground" />
-                  آخر الدرجات
+                  Recent Grades
                 </CardTitle>
                 <Link to="/student/grades">
-                  <Button variant="ghost" size="sm">عرض الكل</Button>
+                  <Button variant="ghost" size="sm">View All</Button>
                 </Link>
               </div>
             </CardHeader>
@@ -171,7 +171,7 @@ const StudentDashboard = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Bell className="w-5 h-5 text-muted-foreground" />
-              الإشعارات
+              Notifications
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">

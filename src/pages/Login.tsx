@@ -17,7 +17,7 @@ const Login = () => {
     setError('');
     
     if (!userId.trim()) {
-      setError('الرجاء إدخال رقم الهوية');
+      setError('Please enter your User ID');
       return;
     }
 
@@ -50,10 +50,10 @@ const Login = () => {
           
           <div>
             <CardTitle className="text-3xl font-bold text-primary">
-              MENTOR AI
+              EduBot AI
             </CardTitle>
             <CardDescription className="text-base mt-2">
-              AI Teaching Agent for Student Support
+              AI-Powered Educational Robot for Smart Learning
             </CardDescription>
           </div>
 
@@ -68,13 +68,13 @@ const Login = () => {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-foreground">
-                رقم الهوية / User ID
+                User ID
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="T001 أو S001"
+                  placeholder="T001 or S001"
                   value={userId}
                   onChange={(e) => setUserId(e.target.value)}
                   className="pl-10 h-12 text-lg"
@@ -91,23 +91,23 @@ const Login = () => {
             )}
 
             <Button type="submit" className="w-full h-12 text-lg font-semibold">
-              تسجيل الدخول
+              Sign In
             </Button>
           </form>
 
           {/* Demo accounts hint */}
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <p className="text-sm font-medium text-muted-foreground text-center">
-              حسابات تجريبية للاختبار:
+              Demo accounts for testing:
             </p>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="bg-background rounded-md p-2 text-center">
                 <span className="font-mono font-bold text-primary">T001</span>
-                <span className="text-muted-foreground block">مدرس</span>
+                <span className="text-muted-foreground block">Teacher</span>
               </div>
               <div className="bg-background rounded-md p-2 text-center">
                 <span className="font-mono font-bold text-primary">S001</span>
-                <span className="text-muted-foreground block">طالب</span>
+                <span className="text-muted-foreground block">Student</span>
               </div>
             </div>
           </div>

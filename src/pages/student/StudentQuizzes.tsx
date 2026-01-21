@@ -8,30 +8,30 @@ const StudentQuizzes = () => {
   const quizzes = [
     { 
       id: 1,
-      title: 'اختبار الأسبوع 1', 
+      title: 'Week 1 Quiz', 
       week: 1,
       questions: 10,
-      duration: '30 دقيقة',
+      duration: '30 minutes',
       status: 'completed',
       grade: 90,
-      completedAt: '18 يناير 2024'
+      completedAt: 'January 18, 2024'
     },
     { 
       id: 2,
-      title: 'اختبار الأسبوع 2', 
+      title: 'Week 2 Quiz', 
       week: 2,
       questions: 15,
-      duration: '45 دقيقة',
+      duration: '45 minutes',
       status: 'completed',
       grade: 82,
-      completedAt: '25 يناير 2024'
+      completedAt: 'January 25, 2024'
     },
     { 
       id: 3,
-      title: 'اختبار الأسبوع 3', 
+      title: 'Week 3 Quiz', 
       week: 3,
       questions: 12,
-      duration: '35 دقيقة',
+      duration: '35 minutes',
       status: 'available',
       grade: null,
       completedAt: null
@@ -41,11 +41,11 @@ const StudentQuizzes = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-success/20 text-success hover:bg-success/30">مكتمل</Badge>;
+        return <Badge className="bg-success/20 text-success hover:bg-success/30">Completed</Badge>;
       case 'available':
-        return <Badge className="bg-primary/20 text-primary hover:bg-primary/30">متاح</Badge>;
+        return <Badge className="bg-primary/20 text-primary hover:bg-primary/30">Available</Badge>;
       case 'locked':
-        return <Badge variant="outline" className="text-muted-foreground">مقفل</Badge>;
+        return <Badge variant="outline" className="text-muted-foreground">Locked</Badge>;
       default:
         return null;
     }
@@ -59,26 +59,26 @@ const StudentQuizzes = () => {
   };
 
   return (
-    <DashboardLayout title="الاختبارات">
+    <DashboardLayout title="Quizzes">
       <div className="space-y-6">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold text-primary">3</p>
-              <p className="text-sm text-muted-foreground">إجمالي الاختبارات</p>
+              <p className="text-sm text-muted-foreground">Total Quizzes</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold text-success">2</p>
-              <p className="text-sm text-muted-foreground">تم إنجازها</p>
+              <p className="text-sm text-muted-foreground">Completed</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold">86%</p>
-              <p className="text-sm text-muted-foreground">متوسط الدرجات</p>
+              <p className="text-sm text-muted-foreground">Average Grade</p>
             </CardContent>
           </Card>
         </div>
@@ -101,21 +101,21 @@ const StudentQuizzes = () => {
                   {getStatusBadge(quiz.status)}
                 </div>
                 <CardTitle className="text-lg mt-3">{quiz.title}</CardTitle>
-                <CardDescription>الأسبوع {quiz.week}</CardDescription>
+                <CardDescription>Week {quiz.week}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground flex items-center gap-1">
                       <HelpCircle className="w-4 h-4" />
-                      الأسئلة
+                      Questions
                     </span>
                     <span className="font-medium">{quiz.questions}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      المدة
+                      Duration
                     </span>
                     <span className="font-medium">{quiz.duration}</span>
                   </div>
@@ -123,7 +123,7 @@ const StudentQuizzes = () => {
 
                 {quiz.status === 'completed' && quiz.grade !== null && (
                   <div className="bg-muted/30 rounded-xl p-4 mb-4 text-center">
-                    <p className="text-sm text-muted-foreground mb-1">درجتك</p>
+                    <p className="text-sm text-muted-foreground mb-1">Your Grade</p>
                     <p className={`text-3xl font-bold ${getGradeColor(quiz.grade)}`}>
                       {quiz.grade}%
                     </p>
@@ -136,11 +136,11 @@ const StudentQuizzes = () => {
                   variant={quiz.status === 'completed' ? 'outline' : 'default'}
                 >
                   {quiz.status === 'completed' ? (
-                    <>عرض النتائج</>
+                    <>View Results</>
                   ) : (
                     <>
-                      <Play className="w-4 h-4 ml-1" />
-                      ابدأ الاختبار
+                      <Play className="w-4 h-4 mr-1" />
+                      Start Quiz
                     </>
                   )}
                 </Button>

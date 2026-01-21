@@ -14,32 +14,32 @@ import {
 
 const TeacherDashboard = () => {
   const stats = [
-    { title: 'إجمالي الطلاب', value: '45', icon: Users, color: 'text-primary' },
-    { title: 'الدروس المرفوعة', value: '12', icon: FileText, color: 'text-success' },
-    { title: 'الواجبات النشطة', value: '3', icon: ClipboardList, color: 'text-warning' },
-    { title: 'بانتظار الاعتماد', value: '8', icon: CheckCircle, color: 'text-destructive' },
+    { title: 'Total Students', value: '45', icon: Users, color: 'text-primary' },
+    { title: 'Uploaded Lessons', value: '12', icon: FileText, color: 'text-success' },
+    { title: 'Active Assignments', value: '3', icon: ClipboardList, color: 'text-warning' },
+    { title: 'Pending Approval', value: '8', icon: CheckCircle, color: 'text-destructive' },
   ];
 
   const recentActivities = [
-    { type: 'assignment', text: 'تم تسليم واجب "أساسيات البرمجة" من 15 طالب', time: 'منذ ساعتين' },
-    { type: 'quiz', text: 'اختبار الأسبوع 5 جاهز للاعتماد', time: 'منذ 3 ساعات' },
-    { type: 'student', text: 'سؤال جديد من الطالب محمد الأحمد', time: 'منذ 5 ساعات' },
-    { type: 'content', text: 'تم رفع محتوى الأسبوع 6 بنجاح', time: 'أمس' },
+    { type: 'assignment', text: 'Assignment "Programming Basics" submitted by 15 students', time: '2 hours ago' },
+    { type: 'quiz', text: 'Week 5 quiz ready for approval', time: '3 hours ago' },
+    { type: 'student', text: 'New question from student Mohammed Al-Ahmed', time: '5 hours ago' },
+    { type: 'content', text: 'Week 6 content uploaded successfully', time: 'Yesterday' },
   ];
 
   const pendingGrades = [
-    { student: 'علي عبدالعزيز', assignment: 'واجب 3', aiGrade: 85, status: 'pending' },
-    { student: 'فاطمة العلي', assignment: 'واجب 3', aiGrade: 92, status: 'pending' },
-    { student: 'محمد الأحمد', assignment: 'اختبار 2', aiGrade: 78, status: 'pending' },
+    { student: 'Ali Abdulaziz', assignment: 'Assignment 3', aiGrade: 85, status: 'pending' },
+    { student: 'Fatima Al-Ali', assignment: 'Assignment 3', aiGrade: 92, status: 'pending' },
+    { student: 'Mohammed Al-Ahmed', assignment: 'Quiz 2', aiGrade: 78, status: 'pending' },
   ];
 
   return (
-    <DashboardLayout title="لوحة التحكم">
+    <DashboardLayout title="Dashboard">
       <div className="space-y-6">
         {/* Welcome Section */}
         <div className="bg-gradient-to-r from-primary to-primary/80 rounded-2xl p-6 text-primary-foreground">
-          <h2 className="text-2xl font-bold mb-2">مرحباً، د. أحمد المحمود 👋</h2>
-          <p className="opacity-90">لديك 8 درجات بانتظار الاعتماد و 3 واجبات نشطة</p>
+          <h2 className="text-2xl font-bold mb-2">Welcome, Dr. Ahmed Al-Mahmoud 👋</h2>
+          <p className="opacity-90">You have 8 grades pending approval and 3 active assignments</p>
         </div>
 
         {/* Stats Grid */}
@@ -69,15 +69,15 @@ const TeacherDashboard = () => {
                 <div>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <AlertCircle className="w-5 h-5 text-warning" />
-                    درجات بانتظار الاعتماد
+                    Grades Pending Approval
                   </CardTitle>
                   <CardDescription>
-                    راجع واعتمد الدرجات المقترحة من AI
+                    Review and approve AI-suggested grades
                   </CardDescription>
                 </div>
                 <Button variant="outline" size="sm">
-                  عرض الكل
-                  <ArrowRight className="w-4 h-4 mr-2" />
+                  View All
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </div>
             </CardHeader>
@@ -93,11 +93,11 @@ const TeacherDashboard = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-center">
-                      <p className="text-xs text-muted-foreground">درجة AI</p>
+                      <p className="text-xs text-muted-foreground">AI Grade</p>
                       <p className="text-lg font-bold text-primary">{item.aiGrade}%</p>
                     </div>
                     <Button size="sm" className="h-9">
-                      اعتماد
+                      Approve
                     </Button>
                   </div>
                 </div>
@@ -110,7 +110,7 @@ const TeacherDashboard = () => {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Clock className="w-5 h-5 text-muted-foreground" />
-                آخر الأنشطة
+                Recent Activity
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -133,25 +133,25 @@ const TeacherDashboard = () => {
         {/* Quick Actions */}
         <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle className="text-lg">إجراءات سريعة</CardTitle>
+            <CardTitle className="text-lg">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <Button variant="outline" className="h-auto py-4 flex-col gap-2">
                 <FileText className="w-6 h-6" />
-                <span>رفع محتوى جديد</span>
+                <span>Upload Content</span>
               </Button>
               <Button variant="outline" className="h-auto py-4 flex-col gap-2">
                 <ClipboardList className="w-6 h-6" />
-                <span>إنشاء واجب</span>
+                <span>Create Assignment</span>
               </Button>
               <Button variant="outline" className="h-auto py-4 flex-col gap-2">
                 <CheckCircle className="w-6 h-6" />
-                <span>توليد اختبار</span>
+                <span>Generate Quiz</span>
               </Button>
               <Button variant="outline" className="h-auto py-4 flex-col gap-2">
                 <TrendingUp className="w-6 h-6" />
-                <span>عرض التقارير</span>
+                <span>View Reports</span>
               </Button>
             </div>
           </CardContent>
