@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, FileText, BookOpen, ClipboardList, CheckCircle, AlertCircle, Trash2, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from '@/integrations/supabase/types';
 
 type MaterialType = Database['public']['Enums']['material_type'];
@@ -26,6 +27,7 @@ const materialTypes: { type: MaterialType; label: string; description: string; i
 ];
 
 const TeacherContent = () => {
+  const { user: authUser } = useAuth(); // Use demo auth context
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedType, setSelectedType] = useState<MaterialType>('textbook');
@@ -38,54 +40,52 @@ const TeacherContent = () => {
   // Fetch course and materials on mount
   useEffect(() => {
     fetchCourseAndMaterials();
-  }, []);
+  }, [authUser]);
 
   const fetchCourseAndMaterials = async () => {
     try {
       setIsLoading(true);
       
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      // Use demo auth context instead of Supabase auth
+      if (!authUser) {
         toast({
           title: 'Not Logged In',
           description: 'Please log in to access this page.',
           variant: 'destructive'
         });
+        setIsLoading(false);
         return;
       }
 
-      // Check if user is a teacher
-      const { data: roles } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'teacher');
-
-      if (!roles || roles.length === 0) {
+      // Check role from demo auth context
+      if (authUser.role !== 'teacher') {
         toast({
           title: 'Access Denied',
           description: 'You must be a teacher to upload course materials.',
           variant: 'destructive'
         });
+        setIsLoading(false);
         return;
       }
 
-      // Check if teacher has a course
+      // For demo: fetch or create the CENG645 course (using code as identifier)
       let { data: courses, error: courseError } = await supabase
         .from('courses')
         .select('id')
-        .eq('teacher_id', user.id)
+        .eq('code', 'CENG645')
         .limit(1);
 
       if (courseError) {
         console.error('Error fetching course:', courseError);
-        return;
       }
 
-      // If no course exists, auto-create CENG645
+      // If no course exists, auto-create CENG645 (without teacher_id constraint for demo)
       if (!courses || courses.length === 0) {
         setIsCreatingCourse(true);
+        
+        // For demo, we'll create a course and store a placeholder teacher_id
+        // Since courses table requires teacher_id as UUID, we generate a consistent one from demo ID
+        const demoTeacherId = '00000000-0000-0000-0000-000000000001'; // Fixed UUID for demo teacher
         
         const { data: newCourse, error: createError } = await supabase
           .from('courses')
@@ -93,7 +93,7 @@ const TeacherContent = () => {
             title: 'Advanced Topics in Computer Engineering',
             code: 'CENG645',
             description: 'Advanced computer engineering course for graduation project',
-            teacher_id: user.id,
+            teacher_id: demoTeacherId,
             is_active: true
           })
           .select()
