@@ -3,7 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Sparkles, BookOpen, Loader2 } from 'lucide-react';
+import { Send, Sparkles, BookOpen, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,12 +12,18 @@ interface Message {
   content: string;
 }
 
+interface Course {
+  id: string;
+  title: string;
+  code: string;
+}
+
 const StudentChat = () => {
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Hello! I\'m EduBot, your AI Tutor for "Introduction to Programming". How can I help you today? I can answer questions related to the course content only.' },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [isLoadingCourse, setIsLoadingCourse] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -28,6 +34,68 @@ const StudentChat = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Fetch enrolled course on mount
+  useEffect(() => {
+    fetchEnrolledCourse();
+  }, []);
+
+  const fetchEnrolledCourse = async () => {
+    try {
+      setIsLoadingCourse(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get student's enrolled course
+      const { data: enrollments, error: enrollError } = await supabase
+        .from('enrollments')
+        .select(`
+          course_id,
+          courses:course_id (id, title, code)
+        `)
+        .eq('student_id', user.id)
+        .eq('status', 'active')
+        .limit(1);
+
+      if (enrollError) {
+        console.error('Enrollment fetch error:', enrollError);
+        return;
+      }
+
+      if (enrollments && enrollments.length > 0 && enrollments[0].courses) {
+        const courseData = enrollments[0].courses as unknown as Course;
+        setCourse(courseData);
+        setMessages([{
+          role: 'assistant',
+          content: `Hello! I'm EduBot, your AI Tutor for "${courseData.title}" (${courseData.code}). How can I help you today? I can answer questions based on the course materials uploaded by your instructor.`
+        }]);
+      } else {
+        // Fallback: get any active course
+        const { data: courses } = await supabase
+          .from('courses')
+          .select('id, title, code')
+          .eq('is_active', true)
+          .limit(1);
+
+        if (courses && courses.length > 0) {
+          setCourse(courses[0]);
+          setMessages([{
+            role: 'assistant',
+            content: `Hello! I'm EduBot, your AI Tutor for "${courses[0].title}" (${courses[0].code}). How can I help you today? I can answer questions based on the course materials.`
+          }]);
+        } else {
+          setMessages([{
+            role: 'assistant',
+            content: `Hello! I'm EduBot, your AI Tutor. No course is currently assigned. Please contact your instructor for enrollment.`
+          }]);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching course:', error);
+    } finally {
+      setIsLoadingCourse(false);
+    }
+  };
 
   const handleSend = async () => {
     if (!message.trim() || isLoading) return;
@@ -44,7 +112,7 @@ const StudentChat = () => {
             role: m.role,
             content: m.content
           })),
-          courseContext: 'Introduction to Programming - ITCS101: Covers programming fundamentals, variables, loops, functions, and basic algorithms.'
+          courseId: course?.id
         }
       });
 
@@ -85,10 +153,22 @@ const StudentChat = () => {
               </div>
               <div>
                 <h2 className="font-semibold">EduBot AI</h2>
-                <p className="text-sm text-muted-foreground flex items-center gap-1">
-                  <BookOpen className="w-4 h-4" />
-                  Course: Introduction to Programming - ITCS101
-                </p>
+                {isLoadingCourse ? (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading course...
+                  </p>
+                ) : course ? (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <BookOpen className="w-4 h-4" />
+                    Course: {course.title} - {course.code}
+                  </p>
+                ) : (
+                  <p className="text-sm text-destructive flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    No course assigned
+                  </p>
+                )}
               </div>
               <div className="ml-auto">
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
@@ -139,19 +219,19 @@ const StudentChat = () => {
           <CardContent className="p-4">
             <div className="flex gap-2">
               <Input
-                placeholder="Type your question here..."
+                placeholder={course ? "Type your question here..." : "No course available"}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
                 className="flex-1"
-                disabled={isLoading}
+                disabled={isLoading || !course}
               />
-              <Button onClick={handleSend} disabled={isLoading || !message.trim()}>
+              <Button onClick={handleSend} disabled={isLoading || !message.trim() || !course}>
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground text-center mt-2">
-              Questions are limited to course content only
+              Questions are answered based on uploaded course materials
             </p>
           </CardContent>
         </Card>
