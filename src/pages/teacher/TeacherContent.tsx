@@ -31,6 +31,7 @@ const TeacherContent = () => {
   const [selectedType, setSelectedType] = useState<MaterialType>('textbook');
   const [courseId, setCourseId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingCourse, setIsCreatingCourse] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -43,11 +44,35 @@ const TeacherContent = () => {
     try {
       setIsLoading(true);
       
-      // Get user's course (assuming teacher has one course for graduation project)
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        toast({
+          title: 'Not Logged In',
+          description: 'Please log in to access this page.',
+          variant: 'destructive'
+        });
+        return;
+      }
 
-      const { data: courses, error: courseError } = await supabase
+      // Check if user is a teacher
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'teacher');
+
+      if (!roles || roles.length === 0) {
+        toast({
+          title: 'Access Denied',
+          description: 'You must be a teacher to upload course materials.',
+          variant: 'destructive'
+        });
+        return;
+      }
+
+      // Check if teacher has a course
+      let { data: courses, error: courseError } = await supabase
         .from('courses')
         .select('id')
         .eq('teacher_id', user.id)
@@ -56,6 +81,43 @@ const TeacherContent = () => {
       if (courseError) {
         console.error('Error fetching course:', courseError);
         return;
+      }
+
+      // If no course exists, auto-create CENG645
+      if (!courses || courses.length === 0) {
+        setIsCreatingCourse(true);
+        
+        const { data: newCourse, error: createError } = await supabase
+          .from('courses')
+          .insert({
+            title: 'Advanced Topics in Computer Engineering',
+            code: 'CENG645',
+            description: 'Advanced computer engineering course for graduation project',
+            teacher_id: user.id,
+            is_active: true
+          })
+          .select()
+          .single();
+
+        setIsCreatingCourse(false);
+
+        if (createError) {
+          console.error('Error creating course:', createError);
+          toast({
+            title: 'Error',
+            description: 'Failed to create course. Please try again.',
+            variant: 'destructive'
+          });
+          return;
+        }
+
+        if (newCourse) {
+          courses = [newCourse];
+          toast({
+            title: 'Course Created',
+            description: 'CENG645 course has been set up. You can now upload materials.',
+          });
+        }
       }
 
       if (courses && courses.length > 0) {
@@ -349,9 +411,12 @@ const TeacherContent = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            {isLoading || isCreatingCourse ? (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary mb-2" />
+                <p className="text-sm text-muted-foreground">
+                  {isCreatingCourse ? 'Setting up CENG645 course...' : 'Loading materials...'}
+                </p>
               </div>
             ) : uploadedFiles.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
