@@ -42,11 +42,11 @@ const teacherMenuItems = [
 
 const studentMenuItems = [
   { title: 'Dashboard', url: '/student', icon: LayoutDashboard },
+  { title: 'AI Tutor', url: '/student/chat', icon: MessageSquare },
   { title: 'Lessons', url: '/student/lessons', icon: BookOpen },
   { title: 'Assignments', url: '/student/assignments', icon: ClipboardList },
   { title: 'Quizzes', url: '/student/quizzes', icon: CheckCircle },
   { title: 'My Grades', url: '/student/grades', icon: Award },
-  { title: 'AI Tutor', url: '/student/chat', icon: MessageSquare },
 ];
 
 export function AppSidebar() {

@@ -46,7 +46,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={
         isAuthenticated ? (
-          <Navigate to={user?.role === 'teacher' ? '/teacher' : '/student'} replace />
+          <Navigate to={user?.role === 'teacher' ? '/teacher' : '/student/chat'} replace />
         ) : (
           <Login />
         )
