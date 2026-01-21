@@ -49,12 +49,9 @@ const Login = () => {
           </div>
           
           <div>
-            <CardTitle className="text-3xl font-bold text-primary">
-              EduBot AI
+            <CardTitle className="text-2xl font-bold text-primary leading-tight">
+              AI-Powered Educational Robot for the Next Generation of Smart Learning with IoT and Cloud Intelligence
             </CardTitle>
-            <CardDescription className="text-base mt-2">
-              AI-Powered Educational Robot for Smart Learning
-            </CardDescription>
           </div>
 
           {/* University Badge */}
