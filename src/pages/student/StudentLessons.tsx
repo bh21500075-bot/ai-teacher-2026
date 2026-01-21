@@ -9,56 +9,56 @@ const StudentLessons = () => {
   const weeks = [
     { 
       week: 1, 
-      title: 'مقدمة في البرمجة', 
+      title: 'Introduction to Programming', 
       slides: 25, 
       status: 'completed',
       progress: 100,
-      duration: '45 دقيقة'
+      duration: '45 minutes'
     },
     { 
       week: 2, 
-      title: 'المتغيرات والعمليات', 
+      title: 'Variables and Operations', 
       slides: 30, 
       status: 'completed',
       progress: 100,
-      duration: '55 دقيقة'
+      duration: '55 minutes'
     },
     { 
       week: 3, 
-      title: 'الجمل الشرطية', 
+      title: 'Conditional Statements', 
       slides: 28, 
       status: 'in_progress',
       progress: 65,
-      duration: '50 دقيقة'
+      duration: '50 minutes'
     },
     { 
       week: 4, 
-      title: 'الحلقات التكرارية', 
+      title: 'Loops and Iterations', 
       slides: 32, 
       status: 'available',
       progress: 0,
-      duration: '60 دقيقة'
+      duration: '60 minutes'
     },
     { 
       week: 5, 
-      title: 'الدوال والإجراءات', 
+      title: 'Functions and Procedures', 
       slides: 35, 
       status: 'locked',
       progress: 0,
-      duration: '65 دقيقة'
+      duration: '65 minutes'
     },
   ];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
-        return <Badge className="bg-success/20 text-success hover:bg-success/30">مكتمل</Badge>;
+        return <Badge className="bg-success/20 text-success hover:bg-success/30">Completed</Badge>;
       case 'in_progress':
-        return <Badge className="bg-primary/20 text-primary hover:bg-primary/30">جاري</Badge>;
+        return <Badge className="bg-primary/20 text-primary hover:bg-primary/30">In Progress</Badge>;
       case 'available':
-        return <Badge variant="secondary">متاح</Badge>;
+        return <Badge variant="secondary">Available</Badge>;
       case 'locked':
-        return <Badge variant="outline" className="text-muted-foreground">مقفل</Badge>;
+        return <Badge variant="outline" className="text-muted-foreground">Locked</Badge>;
       default:
         return null;
     }
@@ -80,19 +80,19 @@ const StudentLessons = () => {
   };
 
   return (
-    <DashboardLayout title="الدروس">
+    <DashboardLayout title="Lessons">
       <div className="space-y-6">
         {/* Course Progress */}
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-semibold">مقدمة في البرمجة - ITCS101</h3>
-                <p className="text-muted-foreground">الفصل الأول 2024</p>
+                <h3 className="text-lg font-semibold">Introduction to Programming - ITCS101</h3>
+                <p className="text-muted-foreground">Fall Semester 2024</p>
               </div>
-              <div className="text-left">
+              <div className="text-right">
                 <p className="text-3xl font-bold text-primary">68%</p>
-                <p className="text-sm text-muted-foreground">التقدم الكلي</p>
+                <p className="text-sm text-muted-foreground">Overall Progress</p>
               </div>
             </div>
             <Progress value={68} className="h-3" />
@@ -123,7 +123,7 @@ const StudentLessons = () => {
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
                       <h3 className="font-semibold text-lg">
-                        الأسبوع {week.week}: {week.title}
+                        Week {week.week}: {week.title}
                       </h3>
                       {getStatusBadge(week.status)}
                     </div>
@@ -131,7 +131,7 @@ const StudentLessons = () => {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                       <span className="flex items-center gap-1">
                         <BookOpen className="w-4 h-4" />
-                        {week.slides} شريحة
+                        {week.slides} slides
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
@@ -142,7 +142,7 @@ const StudentLessons = () => {
                     {(week.status === 'completed' || week.status === 'in_progress') && (
                       <div className="mb-3">
                         <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-muted-foreground">التقدم</span>
+                          <span className="text-muted-foreground">Progress</span>
                           <span className="font-medium">{week.progress}%</span>
                         </div>
                         <Progress value={week.progress} className="h-2" />
@@ -154,18 +154,18 @@ const StudentLessons = () => {
                   <div>
                     {week.status === 'locked' ? (
                       <Button disabled variant="outline">
-                        <Lock className="w-4 h-4 ml-1" />
-                        مقفل
+                        <Lock className="w-4 h-4 mr-1" />
+                        Locked
                       </Button>
                     ) : week.status === 'completed' ? (
                       <Button variant="outline">
-                        <Play className="w-4 h-4 ml-1" />
-                        مراجعة
+                        <Play className="w-4 h-4 mr-1" />
+                        Review
                       </Button>
                     ) : (
                       <Button>
-                        <Play className="w-4 h-4 ml-1" />
-                        {week.status === 'in_progress' ? 'متابعة' : 'ابدأ'}
+                        <Play className="w-4 h-4 mr-1" />
+                        {week.status === 'in_progress' ? 'Continue' : 'Start'}
                       </Button>
                     )}
                   </div>

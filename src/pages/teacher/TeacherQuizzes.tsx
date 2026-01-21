@@ -8,30 +8,30 @@ const TeacherQuizzes = () => {
   const quizzes = [
     { 
       id: 1,
-      title: 'اختبار الأسبوع 1', 
+      title: 'Week 1 Quiz', 
       week: 1,
       questions: 10,
-      duration: '30 دقيقة',
+      duration: '30 minutes',
       status: 'published',
       aiGenerated: true,
       attempts: 44
     },
     { 
       id: 2,
-      title: 'اختبار الأسبوع 2', 
+      title: 'Week 2 Quiz', 
       week: 2,
       questions: 15,
-      duration: '45 دقيقة',
+      duration: '45 minutes',
       status: 'published',
       aiGenerated: true,
       attempts: 41
     },
     { 
       id: 3,
-      title: 'اختبار الأسبوع 3', 
+      title: 'Week 3 Quiz', 
       week: 3,
       questions: 12,
-      duration: '35 دقيقة',
+      duration: '35 minutes',
       status: 'draft',
       aiGenerated: true,
       attempts: 0
@@ -41,16 +41,16 @@ const TeacherQuizzes = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'published':
-        return <Badge className="bg-success/20 text-success hover:bg-success/30">منشور</Badge>;
+        return <Badge className="bg-success/20 text-success hover:bg-success/30">Published</Badge>;
       case 'draft':
-        return <Badge variant="secondary">مسودة</Badge>;
+        return <Badge variant="secondary">Draft</Badge>;
       default:
         return null;
     }
   };
 
   return (
-    <DashboardLayout title="الاختبارات">
+    <DashboardLayout title="Quizzes">
       <div className="space-y-6">
         {/* AI Quiz Generator Banner */}
         <Card className="border-0 shadow-sm bg-gradient-to-r from-primary/5 to-accent/5">
@@ -61,15 +61,15 @@ const TeacherQuizzes = () => {
                   <Sparkles className="w-7 h-7 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold">توليد اختبار بالذكاء الاصطناعي</h3>
+                  <h3 className="text-lg font-semibold">AI Quiz Generator</h3>
                   <p className="text-muted-foreground">
-                    أنشئ اختبارات تلقائياً من محتوى الدروس المرفوعة
+                    Automatically generate quizzes from uploaded lesson content
                   </p>
                 </div>
               </div>
               <Button>
-                <Sparkles className="w-4 h-4 ml-2" />
-                توليد اختبار جديد
+                <Sparkles className="w-4 h-4 mr-2" />
+                Generate New Quiz
               </Button>
             </div>
           </CardContent>
@@ -78,11 +78,11 @@ const TeacherQuizzes = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">
-            إدارة الاختبارات والتقييمات
+            Manage quizzes and assessments
           </p>
           <Button variant="outline">
-            <Plus className="w-4 h-4 ml-2" />
-            إنشاء يدوي
+            <Plus className="w-4 h-4 mr-2" />
+            Create Manually
           </Button>
         </div>
 
@@ -98,7 +98,7 @@ const TeacherQuizzes = () => {
                   <div className="flex items-center gap-2">
                     {quiz.aiGenerated && (
                       <Badge variant="outline" className="text-xs">
-                        <Sparkles className="w-3 h-3 ml-1" />
+                        <Sparkles className="w-3 h-3 mr-1" />
                         AI
                       </Badge>
                     )}
@@ -106,27 +106,27 @@ const TeacherQuizzes = () => {
                   </div>
                 </div>
                 <CardTitle className="text-lg mt-3">{quiz.title}</CardTitle>
-                <CardDescription>الأسبوع {quiz.week}</CardDescription>
+                <CardDescription>Week {quiz.week}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground flex items-center gap-1">
                       <HelpCircle className="w-4 h-4" />
-                      الأسئلة
+                      Questions
                     </span>
                     <span className="font-medium">{quiz.questions}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground flex items-center gap-1">
                       <Clock className="w-4 h-4" />
-                      المدة
+                      Duration
                     </span>
                     <span className="font-medium">{quiz.duration}</span>
                   </div>
                   {quiz.status === 'published' && (
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">المحاولات</span>
+                      <span className="text-muted-foreground">Attempts</span>
                       <span className="font-medium">{quiz.attempts}</span>
                     </div>
                   )}
@@ -134,12 +134,12 @@ const TeacherQuizzes = () => {
                 
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" className="flex-1">
-                    <Eye className="w-4 h-4 ml-1" />
-                    عرض
+                    <Eye className="w-4 h-4 mr-1" />
+                    View
                   </Button>
                   <Button variant="outline" size="sm" className="flex-1">
-                    <Edit className="w-4 h-4 ml-1" />
-                    تعديل
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit
                   </Button>
                 </div>
               </CardContent>

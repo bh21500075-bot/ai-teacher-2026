@@ -31,22 +31,22 @@ import {
 } from 'lucide-react';
 
 const teacherMenuItems = [
-  { title: 'الرئيسية', url: '/teacher', icon: LayoutDashboard },
-  { title: 'رفع المحتوى', url: '/teacher/content', icon: Upload },
-  { title: 'الدروس الأسبوعية', url: '/teacher/lessons', icon: FileText },
-  { title: 'الواجبات', url: '/teacher/assignments', icon: ClipboardList },
-  { title: 'الاختبارات', url: '/teacher/quizzes', icon: CheckCircle },
-  { title: 'اعتماد الدرجات', url: '/teacher/grading', icon: Award },
-  { title: 'متابعة الطلاب', url: '/teacher/students', icon: Users },
+  { title: 'Dashboard', url: '/teacher', icon: LayoutDashboard },
+  { title: 'Upload Content', url: '/teacher/content', icon: Upload },
+  { title: 'Weekly Lessons', url: '/teacher/lessons', icon: FileText },
+  { title: 'Assignments', url: '/teacher/assignments', icon: ClipboardList },
+  { title: 'Quizzes', url: '/teacher/quizzes', icon: CheckCircle },
+  { title: 'Grade Approval', url: '/teacher/grading', icon: Award },
+  { title: 'Students', url: '/teacher/students', icon: Users },
 ];
 
 const studentMenuItems = [
-  { title: 'الرئيسية', url: '/student', icon: LayoutDashboard },
-  { title: 'الدروس', url: '/student/lessons', icon: BookOpen },
-  { title: 'الواجبات', url: '/student/assignments', icon: ClipboardList },
-  { title: 'الاختبارات', url: '/student/quizzes', icon: CheckCircle },
-  { title: 'درجاتي', url: '/student/grades', icon: Award },
-  { title: 'المعلم الذكي', url: '/student/chat', icon: MessageSquare },
+  { title: 'Dashboard', url: '/student', icon: LayoutDashboard },
+  { title: 'Lessons', url: '/student/lessons', icon: BookOpen },
+  { title: 'Assignments', url: '/student/assignments', icon: ClipboardList },
+  { title: 'Quizzes', url: '/student/quizzes', icon: CheckCircle },
+  { title: 'My Grades', url: '/student/grades', icon: Award },
+  { title: 'AI Tutor', url: '/student/chat', icon: MessageSquare },
 ];
 
 export function AppSidebar() {
@@ -70,9 +70,9 @@ export function AppSidebar() {
             <GraduationCap className="w-5 h-5 text-sidebar-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-bold text-lg text-sidebar-foreground">MENTOR AI</h1>
+            <h1 className="font-bold text-lg text-sidebar-foreground">EduBot AI</h1>
             <p className="text-xs text-sidebar-foreground/70">
-              {user?.role === 'teacher' ? 'لوحة المدرس' : 'لوحة الطالب'}
+              {user?.role === 'teacher' ? 'Teacher Panel' : 'Student Panel'}
             </p>
           </div>
         </div>
@@ -81,7 +81,7 @@ export function AppSidebar() {
       <SidebarContent className="p-2">
         <SidebarGroup>
           <SidebarGroupLabel className="text-sidebar-foreground/60 px-2 text-xs">
-            القائمة الرئيسية
+            Main Menu
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -129,7 +129,7 @@ export function AppSidebar() {
           onClick={handleLogout}
         >
           <LogOut className="w-4 h-4 mr-2" />
-          تسجيل الخروج
+          Logout
         </Button>
       </SidebarFooter>
     </Sidebar>

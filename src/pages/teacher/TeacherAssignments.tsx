@@ -9,9 +9,9 @@ const TeacherAssignments = () => {
   const assignments = [
     { 
       id: 1,
-      title: 'واجب 1: أساسيات البرمجة', 
+      title: 'Assignment 1: Programming Basics', 
       week: 1,
-      dueDate: '20 يناير 2024',
+      dueDate: 'January 20, 2024',
       submissions: 42,
       total: 45,
       status: 'closed',
@@ -19,9 +19,9 @@ const TeacherAssignments = () => {
     },
     { 
       id: 2,
-      title: 'واجب 2: المتغيرات والأنواع', 
+      title: 'Assignment 2: Variables and Types', 
       week: 2,
-      dueDate: '27 يناير 2024',
+      dueDate: 'January 27, 2024',
       submissions: 40,
       total: 45,
       status: 'closed',
@@ -29,9 +29,9 @@ const TeacherAssignments = () => {
     },
     { 
       id: 3,
-      title: 'واجب 3: الجمل الشرطية', 
+      title: 'Assignment 3: Conditional Statements', 
       week: 3,
-      dueDate: '3 فبراير 2024',
+      dueDate: 'February 3, 2024',
       submissions: 28,
       total: 45,
       status: 'active',
@@ -42,25 +42,25 @@ const TeacherAssignments = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-success/20 text-success hover:bg-success/30">نشط</Badge>;
+        return <Badge className="bg-success/20 text-success hover:bg-success/30">Active</Badge>;
       case 'closed':
-        return <Badge variant="secondary">مغلق</Badge>;
+        return <Badge variant="secondary">Closed</Badge>;
       default:
         return null;
     }
   };
 
   return (
-    <DashboardLayout title="الواجبات">
+    <DashboardLayout title="Assignments">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">
-            إنشاء وإدارة الواجبات الدراسية
+            Create and manage course assignments
           </p>
           <Button>
-            <Plus className="w-4 h-4 ml-2" />
-            إنشاء واجب جديد
+            <Plus className="w-4 h-4 mr-2" />
+            Create Assignment
           </Button>
         </div>
 
@@ -69,19 +69,19 @@ const TeacherAssignments = () => {
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold text-primary">3</p>
-              <p className="text-sm text-muted-foreground">إجمالي الواجبات</p>
+              <p className="text-sm text-muted-foreground">Total Assignments</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold text-success">1</p>
-              <p className="text-sm text-muted-foreground">واجبات نشطة</p>
+              <p className="text-sm text-muted-foreground">Active Assignments</p>
             </CardContent>
           </Card>
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4 text-center">
               <p className="text-3xl font-bold text-warning">82%</p>
-              <p className="text-sm text-muted-foreground">متوسط التسليم</p>
+              <p className="text-sm text-muted-foreground">Avg. Submission Rate</p>
             </CardContent>
           </Card>
         </div>
@@ -101,7 +101,7 @@ const TeacherAssignments = () => {
                       <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Calendar className="w-4 h-4" />
-                          الأسبوع {assignment.week}
+                          Week {assignment.week}
                         </span>
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
@@ -118,7 +118,7 @@ const TeacherAssignments = () => {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-muted-foreground flex items-center gap-1">
                         <Users className="w-4 h-4" />
-                        التسليمات
+                        Submissions
                       </span>
                       <span className="font-semibold">{assignment.submissions}/{assignment.total}</span>
                     </div>
@@ -127,7 +127,7 @@ const TeacherAssignments = () => {
                   
                   {assignment.avgScore && (
                     <div className="bg-muted/30 rounded-lg p-3">
-                      <p className="text-sm text-muted-foreground mb-1">متوسط الدرجات</p>
+                      <p className="text-sm text-muted-foreground mb-1">Average Score</p>
                       <p className="text-2xl font-bold text-primary">{assignment.avgScore}%</p>
                     </div>
                   )}
@@ -135,12 +135,12 @@ const TeacherAssignments = () => {
 
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 ml-1" />
-                    عرض التسليمات
+                    <Eye className="w-4 h-4 mr-1" />
+                    View Submissions
                   </Button>
                   <Button variant="outline" size="sm">
-                    <Edit className="w-4 h-4 ml-1" />
-                    تعديل
+                    <Edit className="w-4 h-4 mr-1" />
+                    Edit
                   </Button>
                 </div>
               </CardContent>

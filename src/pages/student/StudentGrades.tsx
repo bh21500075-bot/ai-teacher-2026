@@ -5,10 +5,10 @@ import { Award, TrendingUp, Trophy, Target } from 'lucide-react';
 
 const StudentGrades = () => {
   const grades = [
-    { type: 'assignment', title: 'واجب 1: أساسيات البرمجة', grade: 95, maxGrade: 100, weight: 10, date: '20 يناير' },
-    { type: 'quiz', title: 'اختبار الأسبوع 1', grade: 90, maxGrade: 100, weight: 5, date: '18 يناير' },
-    { type: 'assignment', title: 'واجب 2: المتغيرات', grade: 88, maxGrade: 100, weight: 10, date: '27 يناير' },
-    { type: 'quiz', title: 'اختبار الأسبوع 2', grade: 82, maxGrade: 100, weight: 5, date: '25 يناير' },
+    { type: 'assignment', title: 'Assignment 1: Programming Basics', grade: 95, maxGrade: 100, weight: 10, date: 'January 20' },
+    { type: 'quiz', title: 'Week 1 Quiz', grade: 90, maxGrade: 100, weight: 5, date: 'January 18' },
+    { type: 'assignment', title: 'Assignment 2: Variables', grade: 88, maxGrade: 100, weight: 10, date: 'January 27' },
+    { type: 'quiz', title: 'Week 2 Quiz', grade: 82, maxGrade: 100, weight: 5, date: 'January 25' },
   ];
 
   const overallGrade = 88;
@@ -22,22 +22,22 @@ const StudentGrades = () => {
   };
 
   const getGradeLabel = (grade: number) => {
-    if (grade >= 90) return 'ممتاز';
-    if (grade >= 80) return 'جيد جداً';
-    if (grade >= 70) return 'جيد';
-    if (grade >= 60) return 'مقبول';
-    return 'ضعيف';
+    if (grade >= 90) return 'Excellent';
+    if (grade >= 80) return 'Very Good';
+    if (grade >= 70) return 'Good';
+    if (grade >= 60) return 'Satisfactory';
+    return 'Needs Improvement';
   };
 
   return (
-    <DashboardLayout title="درجاتي">
+    <DashboardLayout title="My Grades">
       <div className="space-y-6">
         {/* Overall Grade */}
         <Card className="border-0 shadow-sm bg-gradient-to-r from-primary/5 to-accent/5">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-muted-foreground mb-1">المعدل التراكمي</p>
+                <p className="text-muted-foreground mb-1">Cumulative Average</p>
                 <div className="flex items-baseline gap-2">
                   <p className={`text-5xl font-bold ${getGradeColor(overallGrade)}`}>
                     {overallGrade}%
@@ -56,14 +56,14 @@ const StudentGrades = () => {
               <div className="bg-white/50 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Target className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">الهدف</span>
+                  <span className="text-sm text-muted-foreground">Target</span>
                 </div>
                 <p className="text-2xl font-bold">{targetGrade}%</p>
               </div>
               <div className="bg-white/50 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="w-5 h-5 text-success" />
-                  <span className="text-sm text-muted-foreground">التقدم</span>
+                  <span className="text-sm text-muted-foreground">Progress</span>
                 </div>
                 <p className="text-2xl font-bold text-success">+5%</p>
               </div>
@@ -74,28 +74,28 @@ const StudentGrades = () => {
         {/* Grade Breakdown */}
         <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>توزيع الدرجات</CardTitle>
-            <CardDescription>نسبة كل جزء من الدرجة الكلية</CardDescription>
+            <CardTitle>Grade Breakdown</CardTitle>
+            <CardDescription>Percentage of each component in final grade</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm">الواجبات (40%)</span>
+                <span className="text-sm">Assignments (40%)</span>
                 <span className="font-medium">92%</span>
               </div>
               <Progress value={92} className="h-3" />
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm">الاختبارات القصيرة (20%)</span>
+                <span className="text-sm">Quizzes (20%)</span>
                 <span className="font-medium">86%</span>
               </div>
               <Progress value={86} className="h-3" />
             </div>
             <div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm">الاختبار النهائي (40%)</span>
-                <span className="font-medium text-muted-foreground">لم يُعقد بعد</span>
+                <span className="text-sm">Final Exam (40%)</span>
+                <span className="font-medium text-muted-foreground">Not yet taken</span>
               </div>
               <Progress value={0} className="h-3" />
             </div>
@@ -105,7 +105,7 @@ const StudentGrades = () => {
         {/* Detailed Grades */}
         <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>تفاصيل الدرجات</CardTitle>
+            <CardTitle>Grade Details</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -124,10 +124,10 @@ const StudentGrades = () => {
                     </div>
                     <div>
                       <p className="font-medium">{grade.title}</p>
-                      <p className="text-sm text-muted-foreground">{grade.date} • وزن {grade.weight}%</p>
+                      <p className="text-sm text-muted-foreground">{grade.date} • Weight {grade.weight}%</p>
                     </div>
                   </div>
-                  <div className="text-left">
+                  <div className="text-right">
                     <p className={`text-2xl font-bold ${getGradeColor(grade.grade)}`}>
                       {grade.grade}%
                     </p>

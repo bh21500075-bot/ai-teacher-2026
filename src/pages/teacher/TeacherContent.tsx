@@ -13,14 +13,14 @@ const TeacherContent = () => {
   ];
 
   return (
-    <DashboardLayout title="رفع المحتوى">
+    <DashboardLayout title="Upload Content">
       <div className="space-y-6">
         {/* Upload Area */}
         <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>رفع ملفات جديدة</CardTitle>
+            <CardTitle>Upload New Files</CardTitle>
             <CardDescription>
-              ارفع مواصفات المقرر والمواد التعليمية ليتعلم منها المعلم الذكي
+              Upload course specifications and learning materials for the AI tutor to learn from
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -28,13 +28,13 @@ const TeacherContent = () => {
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Upload className="w-8 h-8 text-primary" />
               </div>
-              <p className="text-lg font-medium mb-2">اسحب الملفات هنا أو انقر للرفع</p>
+              <p className="text-lg font-medium mb-2">Drag files here or click to upload</p>
               <p className="text-sm text-muted-foreground mb-4">
-                يدعم: PDF, PPTX, DOCX (حد أقصى 50MB)
+                Supports: PDF, PPTX, DOCX (Max 50MB)
               </p>
               <Button>
-                <Upload className="w-4 h-4 ml-2" />
-                اختر الملفات
+                <Upload className="w-4 h-4 mr-2" />
+                Choose Files
               </Button>
             </div>
           </CardContent>
@@ -47,7 +47,7 @@ const TeacherContent = () => {
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <FileText className="w-6 h-6 text-primary" />
               </div>
-              <h3 className="font-semibold">مواصفات المقرر</h3>
+              <h3 className="font-semibold">Course Specifications</h3>
               <p className="text-sm text-muted-foreground">Course Specs</p>
             </CardContent>
           </Card>
@@ -57,7 +57,7 @@ const TeacherContent = () => {
               <div className="w-12 h-12 bg-accent/20 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <File className="w-6 h-6 text-accent" />
               </div>
-              <h3 className="font-semibold">الشرائح التعليمية</h3>
+              <h3 className="font-semibold">Lecture Slides</h3>
               <p className="text-sm text-muted-foreground">Weekly Slides</p>
             </CardContent>
           </Card>
@@ -67,8 +67,8 @@ const TeacherContent = () => {
               <div className="w-12 h-12 bg-success/20 rounded-xl flex items-center justify-center mx-auto mb-3">
                 <FileText className="w-6 h-6 text-success" />
               </div>
-              <h3 className="font-semibold">مواد إضافية</h3>
-              <p className="text-sm text-muted-foreground">Additional Materials</p>
+              <h3 className="font-semibold">Additional Materials</h3>
+              <p className="text-sm text-muted-foreground">Extra Resources</p>
             </CardContent>
           </Card>
         </div>
@@ -76,9 +76,9 @@ const TeacherContent = () => {
         {/* Uploaded Files List */}
         <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>الملفات المرفوعة</CardTitle>
+            <CardTitle>Uploaded Files</CardTitle>
             <CardDescription>
-              جميع الملفات التي تم رفعها للمقرر
+              All files uploaded for this course
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -102,12 +102,12 @@ const TeacherContent = () => {
                     {file.status === 'processed' ? (
                       <span className="flex items-center gap-1 text-sm text-success">
                         <CheckCircle className="w-4 h-4" />
-                        تمت المعالجة
+                        Processed
                       </span>
                     ) : (
                       <span className="flex items-center gap-1 text-sm text-warning">
                         <AlertCircle className="w-4 h-4" />
-                        جاري المعالجة
+                        Processing
                       </span>
                     )}
                     <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">

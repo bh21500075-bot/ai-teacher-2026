@@ -8,67 +8,67 @@ const TeacherLessons = () => {
   const weeks = [
     { 
       week: 1, 
-      title: 'مقدمة في البرمجة', 
+      title: 'Introduction to Programming', 
       slides: 25, 
       status: 'published',
-      date: '15 يناير 2024'
+      date: 'January 15, 2024'
     },
     { 
       week: 2, 
-      title: 'المتغيرات والعمليات', 
+      title: 'Variables and Operations', 
       slides: 30, 
       status: 'published',
-      date: '22 يناير 2024'
+      date: 'January 22, 2024'
     },
     { 
       week: 3, 
-      title: 'الجمل الشرطية', 
+      title: 'Conditional Statements', 
       slides: 28, 
       status: 'published',
-      date: '29 يناير 2024'
+      date: 'January 29, 2024'
     },
     { 
       week: 4, 
-      title: 'الحلقات التكرارية', 
+      title: 'Loops and Iterations', 
       slides: 32, 
       status: 'draft',
-      date: '5 فبراير 2024'
+      date: 'February 5, 2024'
     },
     { 
       week: 5, 
-      title: 'الدوال والإجراءات', 
+      title: 'Functions and Procedures', 
       slides: 0, 
       status: 'empty',
-      date: '12 فبراير 2024'
+      date: 'February 12, 2024'
     },
   ];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'published':
-        return <Badge className="bg-success/20 text-success hover:bg-success/30">منشور</Badge>;
+        return <Badge className="bg-success/20 text-success hover:bg-success/30">Published</Badge>;
       case 'draft':
-        return <Badge variant="secondary">مسودة</Badge>;
+        return <Badge variant="secondary">Draft</Badge>;
       case 'empty':
-        return <Badge variant="outline">فارغ</Badge>;
+        return <Badge variant="outline">Empty</Badge>;
       default:
         return null;
     }
   };
 
   return (
-    <DashboardLayout title="الدروس الأسبوعية">
+    <DashboardLayout title="Weekly Lessons">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <p className="text-muted-foreground">
-              إدارة الدروس الأسبوعية للمقرر
+              Manage weekly lessons for the course
             </p>
           </div>
           <Button>
-            <BookOpen className="w-4 h-4 ml-2" />
-            إضافة أسبوع جديد
+            <BookOpen className="w-4 h-4 mr-2" />
+            Add New Week
           </Button>
         </div>
 
@@ -92,25 +92,25 @@ const TeacherLessons = () => {
               <CardContent>
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm text-muted-foreground">
-                    {week.slides > 0 ? `${week.slides} شريحة` : 'لا يوجد محتوى'}
+                    {week.slides > 0 ? `${week.slides} slides` : 'No content'}
                   </span>
                 </div>
                 <div className="flex gap-2">
                   {week.status !== 'empty' ? (
                     <>
                       <Button variant="outline" size="sm" className="flex-1">
-                        <Eye className="w-4 h-4 ml-1" />
-                        عرض
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
                       </Button>
                       <Button variant="outline" size="sm" className="flex-1">
-                        <Edit className="w-4 h-4 ml-1" />
-                        تعديل
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
                       </Button>
                     </>
                   ) : (
                     <Button size="sm" className="w-full">
-                      <Play className="w-4 h-4 ml-1" />
-                      إضافة محتوى
+                      <Play className="w-4 h-4 mr-1" />
+                      Add Content
                     </Button>
                   )}
                 </div>
