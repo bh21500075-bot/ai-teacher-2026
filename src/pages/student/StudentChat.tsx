@@ -165,6 +165,17 @@ const StudentChat = () => {
     }
   };
 
+  // Toggle handler for conversational voice mode
+  const handleVoiceToggle = async () => {
+    if (isRecording) {
+      // Stop recording and send
+      await handleVoiceInput();
+    } else {
+      // Start recording
+      startRecording();
+    }
+  };
+
   return (
     <DashboardLayout title="AI Tutor">
       <div className="h-[calc(100vh-8rem)] flex flex-col">
@@ -268,15 +279,14 @@ const StudentChat = () => {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <div className="flex gap-2">
-              {/* Voice Input Button */}
+              {/* Voice Input Button - Toggle Mode */}
               <Button
                 variant={isRecording ? 'destructive' : 'outline'}
                 size="icon"
-                onMouseDown={startRecording}
-                onMouseUp={handleVoiceInput}
-                onMouseLeave={() => isRecording && cancelRecording()}
+                onClick={handleVoiceToggle}
                 disabled={isLoading || !course || isProcessing}
-                title={isRecording ? 'Release to send' : 'Hold to speak'}
+                title={isRecording ? 'Click to stop and send' : 'Click to start recording'}
+                className={isRecording ? 'animate-pulse' : ''}
               >
                 {isProcessing ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
@@ -303,10 +313,10 @@ const StudentChat = () => {
               {isRecording ? (
                 <span className="text-destructive flex items-center justify-center gap-1">
                   <span className="w-2 h-2 bg-destructive rounded-full animate-pulse"></span>
-                  Recording... Release to send
+                  Recording... Click mic to stop and send
                 </span>
               ) : (
-                'Hold mic button to speak or type your question'
+                'Click mic button to speak or type your question'
               )}
             </p>
           </CardContent>
