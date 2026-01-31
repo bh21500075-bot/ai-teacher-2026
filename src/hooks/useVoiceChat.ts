@@ -3,6 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { processTextForVoice } from '@/utils/voiceTextProcessor';
 import { useToast } from '@/hooks/use-toast';
 
+const MAX_RECORDING_DURATION = 15000; // 15 seconds
+const SILENCE_THRESHOLD = 10; // Volume threshold for silence detection
+const SILENCE_DURATION = 2000; // 2 seconds of silence to auto-stop
+
 export function useVoiceChat() {
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -14,12 +18,49 @@ export function useVoiceChat() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   
+  // Auto-stop refs
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const silenceStartRef = useRef<number | null>(null);
+  const maxDurationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const onAutoStopRef = useRef<(() => void) | null>(null);
+  const isRecordingRef = useRef(false);
+  
   const { toast } = useToast();
 
-  const startRecording = useCallback(async () => {
+  const cleanupRecording = useCallback(() => {
+    // Clear timers
+    if (maxDurationTimeoutRef.current) {
+      clearTimeout(maxDurationTimeoutRef.current);
+      maxDurationTimeoutRef.current = null;
+    }
+    
+    // Cancel animation frame
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+    
+    // Close audio context
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(console.error);
+      audioContextRef.current = null;
+    }
+    
+    analyserRef.current = null;
+    silenceStartRef.current = null;
+    onAutoStopRef.current = null;
+    isRecordingRef.current = false;
+  }, []);
+
+  const startRecording = useCallback(async (onAutoStop?: () => void) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
+      
+      // Store the auto-stop callback
+      onAutoStopRef.current = onAutoStop || null;
       
       // Try to use webm with opus, fallback to other formats
       let mimeType = 'audio/webm;codecs=opus';
@@ -42,15 +83,70 @@ export function useVoiceChat() {
 
       mediaRecorder.start();
       setIsRecording(true);
+      isRecordingRef.current = true;
+
+      // Set up audio analysis for silence detection
+      const audioContext = new AudioContext();
+      audioContextRef.current = audioContext;
+      
+      const analyser = audioContext.createAnalyser();
+      analyserRef.current = analyser;
+      analyser.fftSize = 256;
+      
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      // Check for silence
+      const checkSilence = () => {
+        if (!isRecordingRef.current || !analyserRef.current) {
+          return;
+        }
+
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+        analyserRef.current.getByteFrequencyData(dataArray);
+        const volume = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+
+        if (volume < SILENCE_THRESHOLD) {
+          // Silence detected
+          if (!silenceStartRef.current) {
+            silenceStartRef.current = Date.now();
+          } else if (Date.now() - silenceStartRef.current >= SILENCE_DURATION) {
+            // 2 seconds of silence - auto stop
+            console.log('Auto-stopping due to silence');
+            if (onAutoStopRef.current) {
+              onAutoStopRef.current();
+            }
+            return;
+          }
+        } else {
+          // Sound detected, reset silence timer
+          silenceStartRef.current = null;
+        }
+
+        animationFrameRef.current = requestAnimationFrame(checkSilence);
+      };
+
+      // Start silence detection
+      animationFrameRef.current = requestAnimationFrame(checkSilence);
+
+      // Max 15 second recording
+      maxDurationTimeoutRef.current = setTimeout(() => {
+        console.log('Auto-stopping due to max duration');
+        if (onAutoStopRef.current) {
+          onAutoStopRef.current();
+        }
+      }, MAX_RECORDING_DURATION);
+
     } catch (error) {
       console.error('Error starting recording:', error);
+      cleanupRecording();
       toast({
         title: 'Microphone Error',
         description: 'Could not access microphone. Please check permissions.',
         variant: 'destructive',
       });
     }
-  }, [toast]);
+  }, [toast, cleanupRecording]);
 
   const stopRecording = useCallback(async (): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -58,6 +154,9 @@ export function useVoiceChat() {
         reject(new Error('No recording in progress'));
         return;
       }
+
+      // Cleanup auto-stop mechanisms first
+      cleanupRecording();
 
       mediaRecorderRef.current.onstop = async () => {
         try {
@@ -102,9 +201,11 @@ export function useVoiceChat() {
         streamRef.current = null;
       }
     });
-  }, []);
+  }, [cleanupRecording]);
 
   const cancelRecording = useCallback(() => {
+    cleanupRecording();
+    
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
@@ -114,7 +215,7 @@ export function useVoiceChat() {
       streamRef.current = null;
     }
     audioChunksRef.current = [];
-  }, [isRecording]);
+  }, [isRecording, cleanupRecording]);
 
   const speakResponse = useCallback(async (text: string) => {
     if (!voiceEnabled) return;

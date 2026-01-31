@@ -165,14 +165,14 @@ const StudentChat = () => {
     }
   };
 
-  // Toggle handler for conversational voice mode
+  // Toggle handler for conversational voice mode with auto-stop callback
   const handleVoiceToggle = async () => {
     if (isRecording) {
       // Stop recording and send
       await handleVoiceInput();
     } else {
-      // Start recording
-      startRecording();
+      // Start recording with auto-stop callback
+      startRecording(handleVoiceInput);
     }
   };
 
@@ -279,21 +279,20 @@ const StudentChat = () => {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <div className="flex gap-2">
-              {/* Voice Input Button - Toggle Mode */}
+              {/* Voice Input Button - Large Toggle Mode */}
               <Button
                 variant={isRecording ? 'destructive' : 'outline'}
-                size="icon"
                 onClick={handleVoiceToggle}
                 disabled={isLoading || !course || isProcessing}
                 title={isRecording ? 'Click to stop and send' : 'Click to start recording'}
-                className={isRecording ? 'animate-pulse' : ''}
+                className={`h-16 w-16 rounded-full flex-shrink-0 ${isRecording ? 'animate-pulse' : ''}`}
               >
                 {isProcessing ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-8 h-8 animate-spin" />
                 ) : isRecording ? (
-                  <MicOff className="w-5 h-5" />
+                  <MicOff className="w-8 h-8" />
                 ) : (
-                  <Mic className="w-5 h-5" />
+                  <Mic className="w-8 h-8" />
                 )}
               </Button>
               
@@ -313,10 +312,10 @@ const StudentChat = () => {
               {isRecording ? (
                 <span className="text-destructive flex items-center justify-center gap-1">
                   <span className="w-2 h-2 bg-destructive rounded-full animate-pulse"></span>
-                  Recording... Click mic to stop and send
+                  Recording... (auto-stops after 2s silence or 15s max)
                 </span>
               ) : (
-                'Click mic button to speak or type your question'
+                'Click mic to speak • Auto-stops when you pause'
               )}
             </p>
           </CardContent>
