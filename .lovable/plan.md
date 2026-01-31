@@ -1,99 +1,172 @@
 
 
-# Plan: Convert to Conversational Toggle Voice Mode
+# Plan: Enhanced Voice Button with Auto-Stop
 
 ## Overview
-Change the voice input from "hold-to-speak" to a **toggle-based conversation mode** where pressing the microphone button once starts recording, and pressing it again stops and sends the message.
+Make the microphone button bigger and add intelligent auto-stop functionality that detects 2 seconds of silence during recording, with a maximum recording duration of 15 seconds.
 
-## Current Behavior vs New Behavior
+## Changes Summary
 
-| Current | New |
-|---------|-----|
-| Hold button to record | Click once to start |
-| Release to stop & send | Click again to stop & send |
-| `onMouseDown` / `onMouseUp` | `onClick` toggle |
+| Feature | Current | New |
+|---------|---------|-----|
+| Button Size | `size="icon"` (40x40px) | Custom large size (64x64px) |
+| Max Recording | Unlimited | 15 seconds |
+| Silence Detection | None | Auto-stop after 2 seconds silence |
 
 ## Implementation Steps
 
-### Step 1: Update StudentChat Component
-**File**: `src/pages/student/StudentChat.tsx`
+### Step 1: Update useVoiceChat Hook
+**File**: `src/hooks/useVoiceChat.ts`
 
-Change the microphone button from hold-to-speak to toggle:
+Add silence detection and auto-stop timer:
 
-```tsx
-// Before (hold-to-speak)
-<Button
-  onMouseDown={startRecording}
-  onMouseUp={handleVoiceInput}
-  onMouseLeave={() => isRecording && cancelRecording()}
->
+```typescript
+// New refs for timers
+const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+const maxDurationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+const audioContextRef = useRef<AudioContext | null>(null);
+const analyzerRef = useRef<AnalyserNode | null>(null);
+const silenceStartRef = useRef<number | null>(null);
 
-// After (toggle)
-<Button
-  onClick={handleVoiceToggle}
->
+// Add onAutoStop callback parameter
+const startRecording = useCallback(async (onAutoStop?: () => void) => {
+  // ... existing setup code ...
+  
+  // Set up audio analysis for silence detection
+  const audioContext = new AudioContext();
+  const analyzer = audioContext.createAnalyser();
+  const source = audioContext.createMediaStreamSource(stream);
+  source.connect(analyzer);
+  
+  // Check for silence every 100ms
+  const checkSilence = () => {
+    const dataArray = new Uint8Array(analyzer.frequencyBinCount);
+    analyzer.getByteFrequencyData(dataArray);
+    const volume = dataArray.reduce((a, b) => a + b) / dataArray.length;
+    
+    if (volume < 10) {
+      // Silence detected
+      if (!silenceStartRef.current) {
+        silenceStartRef.current = Date.now();
+      } else if (Date.now() - silenceStartRef.current > 2000) {
+        // 2 seconds of silence - auto stop
+        onAutoStop?.();
+        return;
+      }
+    } else {
+      silenceStartRef.current = null;
+    }
+    
+    if (isRecording) {
+      requestAnimationFrame(checkSilence);
+    }
+  };
+  
+  // Max 15 second recording
+  maxDurationTimeoutRef.current = setTimeout(() => {
+    onAutoStop?.();
+  }, 15000);
+  
+  checkSilence();
+});
 ```
 
-Add new toggle handler:
+### Step 2: Update StudentChat Component
+**File**: `src/pages/student/StudentChat.tsx`
+
+Make the button bigger and integrate auto-stop:
+
+```tsx
+// Updated microphone button with larger size
+<Button
+  variant={isRecording ? 'destructive' : 'outline'}
+  onClick={handleVoiceToggle}
+  disabled={isLoading || !course || isProcessing}
+  title={isRecording ? 'Click to stop and send' : 'Click to start recording'}
+  className={`h-16 w-16 rounded-full ${isRecording ? 'animate-pulse' : ''}`}
+>
+  {isProcessing ? (
+    <Loader2 className="w-8 h-8 animate-spin" />
+  ) : isRecording ? (
+    <MicOff className="w-8 h-8" />
+  ) : (
+    <Mic className="w-8 h-8" />
+  )}
+</Button>
+
+// Update hint text with recording info
+{isRecording ? (
+  <span className="text-destructive flex items-center justify-center gap-1">
+    <span className="w-2 h-2 bg-destructive rounded-full animate-pulse"></span>
+    Recording... (auto-stops after 2s silence or 15s max)
+  </span>
+) : (
+  'Click the mic button to speak'
+)}
+```
+
+### Step 3: Pass Auto-Stop Callback
+Update the toggle handler to pass the auto-stop callback:
+
 ```tsx
 const handleVoiceToggle = async () => {
   if (isRecording) {
-    // Stop recording and send
     await handleVoiceInput();
   } else {
-    // Start recording
-    startRecording();
+    startRecording(handleVoiceInput); // Pass callback for auto-stop
   }
 };
-```
-
-### Step 2: Update UI Text and Visual Feedback
-- Change button title from "Hold to speak" to "Click to start/stop"
-- Update the hint text at the bottom
-- Add visual recording indicator (pulsing animation)
-
-```tsx
-// Updated hint text
-<p className="text-xs text-muted-foreground text-center mt-2">
-  {isRecording ? (
-    <span className="text-destructive flex items-center justify-center gap-1">
-      <span className="w-2 h-2 bg-destructive rounded-full animate-pulse"></span>
-      Recording... Click mic to stop and send
-    </span>
-  ) : (
-    'Click mic button to speak or type your question'
-  )}
-</p>
-```
-
-### Step 3: Remove Mouse Leave Handler
-Remove the `onMouseLeave` handler that was needed for hold-to-speak:
-```tsx
-// Remove this line
-onMouseLeave={() => isRecording && cancelRecording()}
 ```
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/pages/student/StudentChat.tsx` | Change button handlers from hold to toggle |
+| `src/hooks/useVoiceChat.ts` | Add silence detection, max duration timer, auto-stop callback |
+| `src/pages/student/StudentChat.tsx` | Bigger button (64x64px), updated hint text |
 
-## User Experience Flow
+## Technical Details
+
+### Silence Detection Algorithm
+- Uses Web Audio API `AnalyserNode` to monitor audio levels
+- Checks volume every 100ms using `requestAnimationFrame`
+- If average frequency volume < 10 for 2 consecutive seconds = silence
+- Triggers auto-stop and sends message
+
+### Timers
+- **Silence timeout**: 2 seconds of continuous silence
+- **Max duration**: 15 seconds absolute limit
+
+### Cleanup
+- Clear all timeouts when recording stops
+- Close AudioContext when done
+
+## User Experience
 
 ```text
-1. User clicks 🎤 button → Recording starts (button turns red, shows pulsing indicator)
-2. User speaks their question
-3. User clicks 🎤 button again → Recording stops, transcribes, sends message
-4. AI responds with text + voice (if voice enabled)
-5. User can click 🎤 to ask another question
+1. User clicks large 🎤 button → Recording starts
+2. User speaks their question (up to 15 seconds)
+3. Auto-stops when:
+   - User is silent for 2 seconds, OR
+   - User clicks button again, OR
+   - 15 seconds elapsed
+4. Message transcribed and sent automatically
+5. AI responds with text + voice
 ```
 
-## Visual States
+## Visual Design
 
-| State | Button Color | Icon | Hint Text |
-|-------|--------------|------|-----------|
-| Ready | Outline | Mic | "Click mic to speak" |
-| Recording | Red/Destructive | MicOff | "Recording... Click to stop and send" |
-| Processing | Outline | Spinner | "Processing..." |
+```text
+┌─────────────────────────────────────────────┐
+│                                             │
+│  [═══════ Text Input ═══════]  [Send]       │
+│                                             │
+│              ┌──────────┐                   │
+│              │   🎤     │  ← 64x64px        │
+│              │  (big)   │    Round button   │
+│              └──────────┘                   │
+│                                             │
+│   "Recording... auto-stops after 2s silence"│
+└─────────────────────────────────────────────┘
+```
 
