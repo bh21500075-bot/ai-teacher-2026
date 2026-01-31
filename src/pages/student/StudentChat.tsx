@@ -3,10 +3,11 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Sparkles, BookOpen, Loader2, AlertCircle } from 'lucide-react';
+import { Send, Sparkles, BookOpen, Loader2, AlertCircle, Mic, MicOff, Volume2, VolumeX, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
+import { useVoiceChat } from '@/hooks/useVoiceChat';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -28,6 +29,19 @@ const StudentChat = () => {
   const [isLoadingCourse, setIsLoadingCourse] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  const {
+    isRecording,
+    isPlaying,
+    isProcessing,
+    voiceEnabled,
+    startRecording,
+    stopRecording,
+    cancelRecording,
+    speakResponse,
+    stopPlaying,
+    toggleVoice,
+  } = useVoiceChat();
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -77,10 +91,11 @@ const StudentChat = () => {
     }
   };
 
-  const handleSend = async () => {
-    if (!message.trim() || isLoading) return;
+  const handleSend = async (inputMessage?: string) => {
+    const messageToSend = inputMessage || message;
+    if (!messageToSend.trim() || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: message };
+    const userMessage: Message = { role: 'user', content: messageToSend };
     setMessages(prev => [...prev, userMessage]);
     setMessage('');
     setIsLoading(true);
@@ -109,6 +124,11 @@ const StudentChat = () => {
         content: data.response 
       };
       setMessages(prev => [...prev, aiResponse]);
+
+      // Auto-play voice response if enabled
+      if (voiceEnabled) {
+        speakResponse(data.response);
+      }
     } catch (error) {
       console.error('Chat error:', error);
       toast({
@@ -118,6 +138,30 @@ const StudentChat = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleVoiceInput = async () => {
+    try {
+      const transcript = await stopRecording();
+      if (transcript && transcript.trim()) {
+        setMessage(transcript);
+        // Auto-send the voice message
+        handleSend(transcript);
+      } else {
+        toast({
+          title: 'No Speech Detected',
+          description: 'Could not detect any speech. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Voice input error:', error);
+      toast({
+        title: 'Voice Error',
+        description: 'Failed to process voice input. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -150,7 +194,17 @@ const StudentChat = () => {
                   </p>
                 )}
               </div>
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-2">
+                {/* Voice Toggle */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={toggleVoice}
+                  className={voiceEnabled ? 'text-primary' : 'text-muted-foreground'}
+                  title={voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
+                >
+                  {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                </Button>
                 <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
                   <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
                   Powered by Gemini AI
@@ -170,9 +224,25 @@ const StudentChat = () => {
                   : 'chat-bubble-ai'
               }`}>
                 {msg.role === 'assistant' && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-primary">AI Tutor</span>
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-medium text-primary">AI Tutor</span>
+                    </div>
+                    {/* Speaker button for AI messages */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => isPlaying ? stopPlaying() : speakResponse(msg.content)}
+                      className="h-7 w-7 p-0"
+                      title={isPlaying ? 'Stop playing' : 'Play response'}
+                    >
+                      {isPlaying ? (
+                        <Square className="w-3 h-3" />
+                      ) : (
+                        <Volume2 className="w-4 h-4" />
+                      )}
+                    </Button>
                   </div>
                 )}
                 <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
@@ -198,6 +268,25 @@ const StudentChat = () => {
         <Card className="border-0 shadow-sm">
           <CardContent className="p-4">
             <div className="flex gap-2">
+              {/* Voice Input Button */}
+              <Button
+                variant={isRecording ? 'destructive' : 'outline'}
+                size="icon"
+                onMouseDown={startRecording}
+                onMouseUp={handleVoiceInput}
+                onMouseLeave={() => isRecording && cancelRecording()}
+                disabled={isLoading || !course || isProcessing}
+                title={isRecording ? 'Release to send' : 'Hold to speak'}
+              >
+                {isProcessing ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : isRecording ? (
+                  <MicOff className="w-5 h-5" />
+                ) : (
+                  <Mic className="w-5 h-5" />
+                )}
+              </Button>
+              
               <Input
                 placeholder={course ? "Type your question here..." : "No course available"}
                 value={message}
@@ -206,12 +295,19 @@ const StudentChat = () => {
                 className="flex-1"
                 disabled={isLoading || !course}
               />
-              <Button onClick={handleSend} disabled={isLoading || !message.trim() || !course}>
+              <Button onClick={() => handleSend()} disabled={isLoading || !message.trim() || !course}>
                 {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </Button>
             </div>
             <p className="text-xs text-muted-foreground text-center mt-2">
-              Questions are answered based on uploaded course materials
+              {isRecording ? (
+                <span className="text-destructive flex items-center justify-center gap-1">
+                  <span className="w-2 h-2 bg-destructive rounded-full animate-pulse"></span>
+                  Recording... Release to send
+                </span>
+              ) : (
+                'Hold mic button to speak or type your question'
+              )}
             </p>
           </CardContent>
         </Card>

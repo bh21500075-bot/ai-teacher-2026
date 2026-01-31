@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.web-search]
 verify_jwt = false
+
+[functions.google-tts]
+verify_jwt = false
+
+[functions.google-stt]
+verify_jwt = false
