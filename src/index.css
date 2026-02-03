@@ -2,37 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-/* MENTOR AI - Academic Professional Design System
+/* MENTOR AI - UTB Brand Design System
+   University of Technology Bahrain
    Designed for Tablet-first experience
    All colors MUST be HSL
 */
 
 @layer base {
   :root {
-    /* Academic Blue Theme */
-    --background: 210 25% 97%;
-    --foreground: 220 25% 10%;
+    /* UTB Theme - Slate, Red, White */
+    --background: 0 0% 97%;
+    --foreground: 0 0% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 25% 10%;
+    --card-foreground: 0 0% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 25% 10%;
+    --popover-foreground: 0 0% 15%;
 
-    /* Primary: Deep Academic Blue */
-    --primary: 215 70% 35%;
+    /* Primary: UTB Red #c8102e */
+    --primary: 350 85% 42%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Light Academic Blue */
-    --secondary: 210 40% 94%;
-    --secondary-foreground: 215 70% 35%;
+    /* Secondary: Light Gray */
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 24%;
 
-    --muted: 210 30% 94%;
-    --muted-foreground: 220 15% 45%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 45%;
 
-    /* Accent: Warm Gold for highlights */
-    --accent: 40 80% 55%;
-    --accent-foreground: 220 25% 10%;
+    /* Accent: UTB Red (lighter) */
+    --accent: 350 75% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
@@ -43,75 +44,75 @@
 
     /* Warning: For pending items */
     --warning: 35 90% 55%;
-    --warning-foreground: 220 25% 10%;
+    --warning-foreground: 0 0% 15%;
 
-    --border: 215 25% 88%;
-    --input: 215 25% 88%;
-    --ring: 215 70% 35%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 350 85% 42%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Academic style */
-    --sidebar-background: 215 70% 25%;
-    --sidebar-foreground: 210 40% 96%;
+    /* Sidebar - UTB Slate/Charcoal #3d3d3d */
+    --sidebar-background: 0 0% 24%;
+    --sidebar-foreground: 0 0% 96%;
     --sidebar-primary: 0 0% 100%;
-    --sidebar-primary-foreground: 215 70% 25%;
-    --sidebar-accent: 215 60% 35%;
+    --sidebar-primary-foreground: 0 0% 24%;
+    --sidebar-accent: 350 85% 42%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 215 50% 35%;
-    --sidebar-ring: 40 80% 55%;
+    --sidebar-border: 0 0% 30%;
+    --sidebar-ring: 350 85% 42%;
 
     /* AI Chat specific */
-    --chat-user: 215 70% 35%;
-    --chat-ai: 210 30% 94%;
+    --chat-user: 350 85% 42%;
+    --chat-ai: 0 0% 94%;
   }
 
   .dark {
-    --background: 220 25% 8%;
-    --foreground: 210 40% 96%;
+    --background: 0 0% 8%;
+    --foreground: 0 0% 96%;
 
-    --card: 220 25% 12%;
-    --card-foreground: 210 40% 96%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 96%;
 
-    --popover: 220 25% 12%;
-    --popover-foreground: 210 40% 96%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 96%;
 
-    --primary: 210 60% 55%;
-    --primary-foreground: 220 25% 8%;
+    --primary: 350 75% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 25% 18%;
-    --secondary-foreground: 210 40% 96%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 96%;
 
-    --muted: 220 25% 18%;
-    --muted-foreground: 215 20% 60%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 40 80% 55%;
-    --accent-foreground: 220 25% 8%;
+    --accent: 350 70% 45%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 65% 45%;
-    --destructive-foreground: 210 40% 96%;
+    --destructive-foreground: 0 0% 96%;
 
     --success: 145 50% 35%;
-    --success-foreground: 210 40% 96%;
+    --success-foreground: 0 0% 96%;
 
     --warning: 35 80% 45%;
-    --warning-foreground: 210 40% 96%;
+    --warning-foreground: 0 0% 96%;
 
-    --border: 220 25% 20%;
-    --input: 220 25% 20%;
-    --ring: 210 60% 55%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 350 75% 50%;
 
-    --sidebar-background: 220 25% 10%;
-    --sidebar-foreground: 210 40% 96%;
-    --sidebar-primary: 210 60% 55%;
-    --sidebar-primary-foreground: 220 25% 10%;
-    --sidebar-accent: 220 25% 18%;
-    --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 220 25% 18%;
-    --sidebar-ring: 40 80% 55%;
+    --sidebar-background: 0 0% 10%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 350 75% 50%;
+    --sidebar-primary-foreground: 0 0% 10%;
+    --sidebar-accent: 0 0% 18%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 350 75% 50%;
 
-    --chat-user: 210 60% 55%;
-    --chat-ai: 220 25% 18%;
+    --chat-user: 350 75% 50%;
+    --chat-ai: 0 0% 18%;
   }
 }
 
