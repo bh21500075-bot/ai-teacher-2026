@@ -15,6 +15,7 @@ interface ChatRequest {
   messages: { role: "user" | "assistant"; content: string }[];
   courseId?: string;
   enableWebSearch?: boolean;
+  explanationMode?: "simple" | "exam" | "advanced";
 }
 
 interface SearchResult {
@@ -99,6 +100,40 @@ async function searchWeb(query: string, apiKey: string): Promise<string> {
   }
 }
 
+// Retry helper with exponential backoff
+async function fetchWithRetry(
+  url: string, 
+  options: RequestInit, 
+  maxRetries = 3,
+  baseDelay = 1000
+): Promise<Response> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+      
+      // If not a rate limit error, return immediately
+      if (response.status !== 429) {
+        return response;
+      }
+      
+      // Rate limit - wait and retry
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.log(`Rate limited, waiting ${delay}ms before retry ${attempt + 1}/${maxRetries}`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.log(`Request failed, waiting ${delay}ms before retry ${attempt + 1}/${maxRetries}`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError || new Error('Max retries exceeded');
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
@@ -106,16 +141,18 @@ serve(async (req) => {
   }
 
   try {
+    // Use Lovable AI endpoint (no API key needed)
+    const LOVABLE_AI_URL = Deno.env.get("LOVABLE_AI_URL") || "https://ai.lovable.dev/v1";
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY") || "";
+    
+    // Fallback to Gemini if Lovable AI not available
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
-    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { messages, courseId, enableWebSearch = true }: ChatRequest = await req.json();
+    const { messages, courseId, enableWebSearch = true, explanationMode = "simple" }: ChatRequest = await req.json();
 
     // Fetch course information and materials
     let courseContext = "";
@@ -169,12 +206,6 @@ serve(async (req) => {
       console.log('Searching web for practical examples...');
       webContext = await searchWeb(latestUserMessage, firecrawlApiKey);
     }
-
-    // Convert messages to Gemini format
-    const geminiMessages: Message[] = messages.map((msg) => ({
-      role: msg.role === "assistant" ? "model" : "user",
-      parts: [{ text: msg.content }],
-    }));
 
     // Determine CCNA level from course code
     let levelSpecificRules = '';
@@ -235,6 +266,20 @@ If asked about basic concepts, suggest Level 1.
 If asked about routing or switching specifics, suggest Level 2/3.`;
     }
 
+    // Explanation mode instructions
+    let explanationStyle = '';
+    switch (explanationMode) {
+      case 'simple':
+        explanationStyle = 'Use simple, beginner-friendly language with real-world analogies. Break complex concepts into small, digestible pieces.';
+        break;
+      case 'exam':
+        explanationStyle = 'Focus on exam-relevant information. Be concise and highlight key points likely to appear on tests. Include common exam question formats.';
+        break;
+      case 'advanced':
+        explanationStyle = 'Provide detailed technical explanations with in-depth analysis. Include underlying principles and advanced configuration options.';
+        break;
+    }
+
     // Build system instruction for AI tutor with web search capabilities
     const systemInstruction = `You are an intelligent AI teaching assistant for ${courseName}. Your role is to:
 
@@ -250,6 +295,8 @@ If asked about routing or switching specifics, suggest Level 2/3.`;
 6. **Redirect When Needed**: If asked about topics from other levels, politely suggest switching.
 7. **Be Supportive**: Maintain an encouraging and patient tone.
 
+**Explanation Style:** ${explanationStyle}
+
 ${levelSpecificRules}
 
 ${courseContext}
@@ -262,48 +309,108 @@ IMPORTANT RULES:
 - Never provide direct answers to exams or graded assignments.
 - Use the course materials as the primary source of truth.`;
 
-    // Call Gemini API
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: geminiMessages,
-          systemInstruction: {
-            parts: [{ text: systemInstruction }],
-          },
-          generationConfig: {
-            temperature: 0.7,
-            topK: 40,
-            topP: 0.95,
-            maxOutputTokens: 2048,
-          },
-        }),
-      }
-    );
+    // Try Lovable AI first, then fallback to Gemini
+    let aiResponse: string;
+    
+    try {
+      // Use OpenAI-compatible format for Lovable AI
+      const openAIMessages = [
+        { role: "system", content: systemInstruction },
+        ...messages.map(msg => ({
+          role: msg.role === "assistant" ? "assistant" : "user",
+          content: msg.content
+        }))
+      ];
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API error:", response.status, errorText);
+      console.log('Calling Lovable AI...');
+      const response = await fetchWithRetry(
+        `${LOVABLE_AI_URL}/chat/completions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(LOVABLE_API_KEY ? { "Authorization": `Bearer ${LOVABLE_API_KEY}` } : {})
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash",
+            messages: openAIMessages,
+            temperature: 0.7,
+            max_tokens: 2048,
+          }),
+        },
+        3,
+        2000
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Lovable AI error:", response.status, errorText);
+        throw new Error(`Lovable AI error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      aiResponse = data.choices?.[0]?.message?.content || 
+        "I apologize, but I couldn't generate a response. Please try again.";
+
+    } catch (lovableError) {
+      console.log('Lovable AI failed, trying Gemini fallback...', lovableError);
       
-      if (response.status === 429) {
+      if (!GEMINI_API_KEY) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "AI service temporarily unavailable. Please try again in a moment." }),
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      
-      throw new Error(`Gemini API error: ${response.status}`);
-    }
 
-    const data = await response.json();
-    
-    // Extract the response text
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 
-      "I apologize, but I couldn't generate a response. Please try again.";
+      // Convert messages to Gemini format
+      const geminiMessages: Message[] = messages.map((msg) => ({
+        role: msg.role === "assistant" ? "model" : "user",
+        parts: [{ text: msg.content }],
+      }));
+
+      // Call Gemini API with retry
+      const response = await fetchWithRetry(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            contents: geminiMessages,
+            systemInstruction: {
+              parts: [{ text: systemInstruction }],
+            },
+            generationConfig: {
+              temperature: 0.7,
+              topK: 40,
+              topP: 0.95,
+              maxOutputTokens: 2048,
+            },
+          }),
+        },
+        3,
+        2000
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Gemini API error:", response.status, errorText);
+        
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        
+        throw new Error(`Gemini API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 
+        "I apologize, but I couldn't generate a response. Please try again.";
+    }
 
     return new Response(
       JSON.stringify({ response: aiResponse }),
