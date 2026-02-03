@@ -1,15 +1,19 @@
 import { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { LogIn } from 'lucide-react';
+import { LogIn, MessageCircle } from 'lucide-react';
 import logo from '@/assets/logo.png';
 import { useAuth } from '@/contexts/AuthContext';
 
+export type GuestTab = 'chat' | 'colleges' | 'programs' | 'contact';
+
 interface GuestLayoutProps {
   children: ReactNode;
+  activeTab: GuestTab;
+  onTabChange: (tab: GuestTab) => void;
 }
 
-export function GuestLayout({ children }: GuestLayoutProps) {
+export function GuestLayout({ children, activeTab, onTabChange }: GuestLayoutProps) {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
@@ -36,14 +40,30 @@ export function GuestLayout({ children }: GuestLayoutProps) {
 
       {/* Navigation Tabs */}
       <nav className="flex justify-center gap-2 p-4 border-b bg-muted/30">
-        <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+        <Button 
+          variant={activeTab === 'colleges' ? 'default' : 'ghost'} 
+          onClick={() => onTabChange('colleges')}
+        >
           Colleges
         </Button>
-        <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+        <Button 
+          variant={activeTab === 'programs' ? 'default' : 'ghost'} 
+          onClick={() => onTabChange('programs')}
+        >
           Programs
         </Button>
-        <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
+        <Button 
+          variant={activeTab === 'contact' ? 'default' : 'ghost'} 
+          onClick={() => onTabChange('contact')}
+        >
           Contact Us
+        </Button>
+        <Button 
+          variant={activeTab === 'chat' ? 'default' : 'ghost'} 
+          onClick={() => onTabChange('chat')}
+        >
+          <MessageCircle className="w-4 h-4 mr-2" />
+          Chat
         </Button>
       </nav>
 
