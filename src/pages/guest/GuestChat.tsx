@@ -3,9 +3,10 @@ import { GuestLayout, GuestTab } from '@/components/layout/GuestLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Sparkles, Loader2, Building2 } from 'lucide-react';
+import { Send, Sparkles, Loader2, Building2, Mic, MicOff, Volume2, VolumeX, Square } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useVoiceChat } from '@/hooks/useVoiceChat';
 import { CollegesInfo } from './CollegesInfo';
 import { ProgramsInfo } from './ProgramsInfo';
 import { ContactInfo } from './ContactInfo';
@@ -36,6 +37,18 @@ How can I assist you today?`
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
+  const {
+    isRecording,
+    isPlaying,
+    isProcessing,
+    voiceEnabled,
+    startRecording,
+    stopRecording,
+    speakResponse,
+    stopPlaying,
+    toggleVoice,
+  } = useVoiceChat();
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -44,10 +57,11 @@ How can I assist you today?`
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!message.trim() || isLoading) return;
+  const handleSend = async (inputMessage?: string) => {
+    const messageToSend = inputMessage || message;
+    if (!messageToSend.trim() || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: message };
+    const userMessage: Message = { role: 'user', content: messageToSend };
     setMessages(prev => [...prev, userMessage]);
     setMessage('');
     setIsLoading(true);
@@ -75,6 +89,11 @@ How can I assist you today?`
         content: data.response 
       };
       setMessages(prev => [...prev, aiResponse]);
+
+      // Auto-play voice response if enabled
+      if (voiceEnabled) {
+        speakResponse(data.response);
+      }
     } catch (error) {
       console.error('Chat error:', error);
       toast({
@@ -84,6 +103,37 @@ How can I assist you today?`
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleVoiceInput = async () => {
+    try {
+      const transcript = await stopRecording();
+      if (transcript && transcript.trim()) {
+        setMessage(transcript);
+        handleSend(transcript);
+      } else {
+        toast({
+          title: 'No Speech Detected',
+          description: 'Could not detect any speech. Please try again.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Voice input error:', error);
+      toast({
+        title: 'Voice Error',
+        description: 'Failed to process voice input.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleVoiceToggle = async () => {
+    if (isRecording) {
+      await handleVoiceInput();
+    } else {
+      startRecording(handleVoiceInput);
     }
   };
 
@@ -102,13 +152,23 @@ How can I assist you today?`
                 <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
                   <Building2 className="w-6 h-6 text-primary-foreground" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h2 className="font-semibold">UTB Information Assistant</h2>
                   <p className="text-sm text-muted-foreground">
                     Ask about our university, colleges, and programs
                   </p>
                 </div>
-                <div className="ml-auto">
+                <div className="flex items-center gap-2">
+                  {/* Voice Toggle */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={toggleVoice}
+                    className={voiceEnabled ? 'text-primary' : 'text-muted-foreground'}
+                    title={voiceEnabled ? 'Voice enabled' : 'Voice disabled'}
+                  >
+                    {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                  </Button>
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
                     <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
                     Guest Mode
@@ -128,9 +188,25 @@ How can I assist you today?`
                     : 'chat-bubble-ai'
                 }`}>
                   {msg.role === 'assistant' && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sparkles className="w-4 h-4 text-primary" />
-                      <span className="text-sm font-medium text-primary">UTB Assistant</span>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                        <span className="text-sm font-medium text-primary">UTB Assistant</span>
+                      </div>
+                      {/* Speaker button for AI messages */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => isPlaying ? stopPlaying() : speakResponse(msg.content)}
+                        className="h-7 w-7 p-0"
+                        title={isPlaying ? 'Stop playing' : 'Play response'}
+                      >
+                        {isPlaying ? (
+                          <Square className="w-3 h-3" />
+                        ) : (
+                          <Volume2 className="w-4 h-4" />
+                        )}
+                      </Button>
                     </div>
                   )}
                   <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
@@ -156,6 +232,23 @@ How can I assist you today?`
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
               <div className="flex gap-2">
+                {/* Voice Input Button */}
+                <Button
+                  variant={isRecording ? 'destructive' : 'outline'}
+                  onClick={handleVoiceToggle}
+                  disabled={isLoading || isProcessing}
+                  title={isRecording ? 'Click to stop and send' : 'Click to start recording'}
+                  className={`h-12 w-12 rounded-full flex-shrink-0 ${isRecording ? 'animate-pulse' : ''}`}
+                >
+                  {isProcessing ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : isRecording ? (
+                    <MicOff className="w-5 h-5" />
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )}
+                </Button>
+                
                 <Input
                   placeholder="Ask about UTB..."
                   value={message}
@@ -164,12 +257,19 @@ How can I assist you today?`
                   className="flex-1"
                   disabled={isLoading}
                 />
-                <Button onClick={handleSend} disabled={isLoading || !message.trim()}>
+                <Button onClick={() => handleSend()} disabled={isLoading || !message.trim()}>
                   {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground text-center mt-2">
-                For course-specific questions, please log in as a student.
+                {isRecording ? (
+                  <span className="text-destructive flex items-center justify-center gap-1">
+                    <span className="w-2 h-2 bg-destructive rounded-full animate-pulse"></span>
+                    Recording... (auto-stops after 2s silence or 15s max)
+                  </span>
+                ) : (
+                  'For course-specific questions, please log in as a student.'
+                )}
               </p>
             </CardContent>
           </Card>

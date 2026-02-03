@@ -46,6 +46,13 @@ const LEVEL_ICONS: Record<string, React.ReactNode> = {
   'CCNA4': <Globe className="w-4 h-4" />,
 };
 
+const COURSE_DISPLAY_NAMES: Record<string, string> = {
+  'CCNA1': 'Network 1',
+  'CCNA2': 'Network 2',
+  'CCNA3': 'Network 3',
+  'CCNA4': 'Network 4',
+};
+
 const TeacherContent = () => {
   const { user: authUser } = useAuth();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -332,9 +339,9 @@ const TeacherContent = () => {
         {/* Course Level Selection */}
         <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Select CCNA Level</CardTitle>
+            <CardTitle>Select Course</CardTitle>
             <CardDescription>
-              Choose which level you want to upload materials for
+              Choose which course to upload materials for
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -347,7 +354,7 @@ const TeacherContent = () => {
                   <SelectItem key={course.id} value={course.id}>
                     <div className="flex items-center gap-2">
                       {LEVEL_ICONS[course.code] || <BookOpen className="w-4 h-4" />}
-                      <span>{course.code}: {course.title.split(': ')[1] || course.title}</span>
+                      <span>{COURSE_DISPLAY_NAMES[course.code] || course.code}: {course.title.split(': ')[1] || course.title}</span>
                     </div>
                   </SelectItem>
                 ))}
@@ -355,7 +362,7 @@ const TeacherContent = () => {
             </Select>
             {selectedCourse && (
               <p className="text-sm text-muted-foreground mt-2">
-                Currently managing: <strong>{selectedCourse.title}</strong>
+                Currently managing: <strong>{COURSE_DISPLAY_NAMES[selectedCourse.code] || selectedCourse.code}</strong>
               </p>
             )}
           </CardContent>

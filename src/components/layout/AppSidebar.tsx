@@ -25,11 +25,13 @@ import {
   Award,
   LogOut,
   CheckCircle,
+  Sparkles,
 } from 'lucide-react';
 import logo from '@/assets/logo.png';
 
 const teacherMenuItems = [
   { title: 'Dashboard', url: '/teacher', icon: LayoutDashboard },
+  { title: 'AI Assistant', url: '/teacher/chat', icon: Sparkles },
   { title: 'Upload Content', url: '/teacher/content', icon: Upload },
   { title: 'Weekly Lessons', url: '/teacher/lessons', icon: FileText },
   { title: 'Assignments', url: '/teacher/assignments', icon: ClipboardList },

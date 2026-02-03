@@ -3,8 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, Play, HelpCircle, Trophy } from 'lucide-react';
+import { CourseSelector, useCourses } from '@/components/CourseSelector';
 
 const StudentQuizzes = () => {
+  const { courses, selectedCourseId, setSelectedCourseId, selectedCourse, COURSE_DISPLAY_NAMES } = useCourses();
+
   const quizzes = [
     { 
       id: 1,
@@ -61,93 +64,108 @@ const StudentQuizzes = () => {
   return (
     <DashboardLayout title="Quizzes">
       <div className="space-y-6">
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-primary">3</p>
-              <p className="text-sm text-muted-foreground">Total Quizzes</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-success">2</p>
-              <p className="text-sm text-muted-foreground">Completed</p>
-            </CardContent>
-          </Card>
-          <Card className="border-0 shadow-sm">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold">86%</p>
-              <p className="text-sm text-muted-foreground">Average Grade</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Course Selector */}
+        <CourseSelector
+          value={selectedCourseId}
+          onChange={setSelectedCourseId}
+          courses={courses}
+          label="Select Course"
+          description="Choose which course to view quizzes for"
+        />
 
-        {/* Quizzes Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {quizzes.map((quiz) => (
-            <Card key={quiz.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                    quiz.status === 'completed' ? 'bg-success/10' : 'bg-primary/10'
-                  }`}>
-                    {quiz.status === 'completed' ? (
-                      <Trophy className="w-5 h-5 text-success" />
-                    ) : (
-                      <CheckCircle className="w-5 h-5 text-primary" />
+        {selectedCourseId && (
+          <>
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-4">
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold text-primary">3</p>
+                  <p className="text-sm text-muted-foreground">Total Quizzes</p>
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold text-success">2</p>
+                  <p className="text-sm text-muted-foreground">Completed</p>
+                </CardContent>
+              </Card>
+              <Card className="border-0 shadow-sm">
+                <CardContent className="p-4 text-center">
+                  <p className="text-3xl font-bold">86%</p>
+                  <p className="text-sm text-muted-foreground">Average Grade</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Quizzes Grid */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {quizzes.map((quiz) => (
+                <Card key={quiz.id} className="border-0 shadow-sm hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        quiz.status === 'completed' ? 'bg-success/10' : 'bg-primary/10'
+                      }`}>
+                        {quiz.status === 'completed' ? (
+                          <Trophy className="w-5 h-5 text-success" />
+                        ) : (
+                          <CheckCircle className="w-5 h-5 text-primary" />
+                        )}
+                      </div>
+                      {getStatusBadge(quiz.status)}
+                    </div>
+                    <CardTitle className="text-lg mt-3">{quiz.title}</CardTitle>
+                    <CardDescription>
+                      {COURSE_DISPLAY_NAMES[selectedCourse?.code || ''] || 'Course'} • Week {quiz.week}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 mb-4">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <HelpCircle className="w-4 h-4" />
+                          Questions
+                        </span>
+                        <span className="font-medium">{quiz.questions}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          Duration
+                        </span>
+                        <span className="font-medium">{quiz.duration}</span>
+                      </div>
+                    </div>
+
+                    {quiz.status === 'completed' && quiz.grade !== null && (
+                      <div className="bg-muted/30 rounded-xl p-4 mb-4 text-center">
+                        <p className="text-sm text-muted-foreground mb-1">Your Grade</p>
+                        <p className={`text-3xl font-bold ${getGradeColor(quiz.grade)}`}>
+                          {quiz.grade}%
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">{quiz.completedAt}</p>
+                      </div>
                     )}
-                  </div>
-                  {getStatusBadge(quiz.status)}
-                </div>
-                <CardTitle className="text-lg mt-3">{quiz.title}</CardTitle>
-                <CardDescription>Week {quiz.week}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <HelpCircle className="w-4 h-4" />
-                      Questions
-                    </span>
-                    <span className="font-medium">{quiz.questions}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground flex items-center gap-1">
-                      <Clock className="w-4 h-4" />
-                      Duration
-                    </span>
-                    <span className="font-medium">{quiz.duration}</span>
-                  </div>
-                </div>
-
-                {quiz.status === 'completed' && quiz.grade !== null && (
-                  <div className="bg-muted/30 rounded-xl p-4 mb-4 text-center">
-                    <p className="text-sm text-muted-foreground mb-1">Your Grade</p>
-                    <p className={`text-3xl font-bold ${getGradeColor(quiz.grade)}`}>
-                      {quiz.grade}%
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">{quiz.completedAt}</p>
-                  </div>
-                )}
-                
-                <Button 
-                  className="w-full" 
-                  variant={quiz.status === 'completed' ? 'outline' : 'default'}
-                >
-                  {quiz.status === 'completed' ? (
-                    <>View Results</>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4 mr-1" />
-                      Start Quiz
-                    </>
-                  )}
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                    
+                    <Button 
+                      className="w-full" 
+                      variant={quiz.status === 'completed' ? 'outline' : 'default'}
+                    >
+                      {quiz.status === 'completed' ? (
+                        <>View Results</>
+                      ) : (
+                        <>
+                          <Play className="w-4 h-4 mr-1" />
+                          Start Quiz
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </DashboardLayout>
   );
