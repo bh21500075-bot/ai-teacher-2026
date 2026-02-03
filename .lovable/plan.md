@@ -1,238 +1,179 @@
 
 
-# Plan: Guest Mode for University Visitors
+# Plan: Guest Mode Document Access
 
 ## Overview
-Add a Guest Mode that allows visitors to explore university information and access selected materials without logging in. Based on the provided UI reference, guests will have access to:
-- Information about University of Technology Bahrain
-- Colleges and programs information  
-- Contact information
-- Campus facilities details
-- A chat interface to ask about the university (but NOT course-specific questions)
+Enable the Guest Mode to access information from 7 official UTB documents by creating a document storage system and updating the guest chat to use Retrieval-Augmented Generation (RAG).
+
+## Documents to Include
+
+| Document | Purpose |
+|----------|---------|
+| UTB-Student-Handbook-AY25-26.docx | Student policies, admissions, academic info |
+| UTB-University-Catalogue-AY25-26.docx | Programs, facilities, services |
+| UTB-Faculty-Manual-AY25-26.docx | Faculty information, structure |
+| UTB-Admin-Staff-Manual-AY25-26.docx | Administrative structure |
+| UTB-Operations-Manual-AY25-26.docx | Operations procedures |
+| UTB-Quality-Manual-AY25-26.docx | Quality policies |
+| UTB-Standing-Committees-Guidelines-AY25-26.docx | Committee guidelines |
 
 ## Architecture
 
 ```text
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Login Page                                │
-│  ┌──────────────────┐              ┌──────────────────────────┐ │
-│  │                  │              │                          │ │
-│  │   Guest Mode     │              │   Teacher / Student      │ │
-│  │   🤖 + UTB Logo  │   ──────►    │   Login with ID          │ │
-│  │                  │              │                          │ │
-│  │   LEARN MORE     │              │   [T001/S001]            │ │
-│  │                  │              │                          │ │
-│  └──────────────────┘              └──────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-           │
-           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Guest Dashboard                               │
+│                         Guest Chat                               │
+│                                                                  │
+│  User: "What programs does UTB offer?"                          │
+│                              │                                   │
+│                              ▼                                   │
 │  ┌────────────────────────────────────────────────────────────┐ │
-│  │ About University of Technology Bahrain                     │ │
-│  │                                                            │ │
-│  │ [Colleges]  [Programs]  [Contact Us]                       │ │
-│  │                                                            │ │
-│  │ ┌────────────────────────────────────────────────────────┐│ │
-│  │ │ 🤖 Hello! Ask me anything about the University of      ││ │
-│  │ │    Technology Bahrain, its colleges, or campus         ││ │
-│  │ │    facilities!                                         ││ │
-│  │ │                                                        ││ │
-│  │ │ [💬 Type your question...]           [🎤]  [Send]      ││ │
-│  │ └────────────────────────────────────────────────────────┘│ │
-│  │                                                            │ │
-│  │                           [Tap to Ask →]                   │ │
+│  │              guest-chat Edge Function                       │ │
+│  │                                                             │ │
+│  │  1. Search guest_documents table for relevant content       │ │
+│  │  2. Include matched content in AI prompt                    │ │
+│  │  3. Generate response with accurate UTB information         │ │
 │  └────────────────────────────────────────────────────────────┘ │
+│                              │                                   │
+│                              ▼                                   │
+│  AI: "UTB offers Bachelor programs in Engineering,              │
+│       Computer Science, Business... Master programs..."         │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ## Implementation Steps
 
-### Step 1: Update AuthContext
-**File**: `src/contexts/AuthContext.tsx`
+### Step 1: Create Database Table
+Create a new table `guest_documents` to store the document content for guest access:
 
-Add `guest` as a possible role and a `loginAsGuest` function:
+```sql
+CREATE TABLE guest_documents (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  document_name TEXT NOT NULL,
+  document_title TEXT NOT NULL,
+  content_text TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Allow public read access for guest chat
+ALTER TABLE guest_documents ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can read guest documents" ON guest_documents
+  FOR SELECT USING (true);
+```
+
+### Step 2: Copy Documents to Project
+Copy the 7 uploaded documents to a project folder for processing.
+
+### Step 3: Create Document Upload Tool
+Create an admin page or script to upload and process the documents into the `guest_documents` table.
+
+### Step 4: Update Guest Chat Edge Function
+Modify `supabase/functions/guest-chat/index.ts` to:
+1. Search the `guest_documents` table for relevant content based on user query
+2. Include the matched document content in the AI prompt
+3. Generate accurate responses from official UTB documents
 
 ```typescript
-export type UserRole = 'teacher' | 'student' | 'guest' | null;
-
-// Add guest user
-const guestUser: User = {
-  id: 'GUEST',
-  name: 'Guest',
-  role: 'guest'
+// Updated guest-chat function
+const searchDocuments = async (query: string, supabase: any) => {
+  // Full-text search or keyword matching
+  const { data, error } = await supabase
+    .from('guest_documents')
+    .select('document_title, content_text')
+    .textSearch('content_text', query.split(' ').join(' | '));
+  
+  return data || [];
 };
 
-// Add loginAsGuest function
-const loginAsGuest = () => {
-  setUser(guestUser);
-};
+// Include document context in AI prompt
+const systemPrompt = `You are a UTB assistant. Use the following 
+document content to answer questions accurately:
+
+${relevantDocuments.map(d => d.content_text).join('\n\n')}
+
+IMPORTANT: Base your answers on the provided documents.`;
 ```
 
-### Step 2: Update Login Page
-**File**: `src/pages/Login.tsx`
+### Step 5: Pre-populate Documents
+Insert the extracted content from all 7 documents into the database. Key content includes:
 
-Add a Guest Mode section following the UI reference:
+**From University Catalogue:**
+- Programs: BSCS, BSIT, BSIE, BSME, BSEnE, BSBI, BSIB, BSAF, MBA
+- Accreditations: ABET, ECBE
+- Facilities: Labs, Library, Sports, Clinic, Cafeteria
 
-```tsx
-// Two-column layout on the login page
-<div className="grid grid-cols-2 gap-4">
-  {/* Guest Mode Card */}
-  <Card onClick={handleGuestLogin} className="cursor-pointer hover:border-primary">
-    <CardContent className="text-center p-6">
-      <Bot className="w-16 h-16 mx-auto text-primary" />
-      <p className="text-sm text-muted-foreground">Guest Mode</p>
-      <img src={logo} className="h-8 mx-auto mt-2" />
-      <Button className="mt-4">LEARN MORE</Button>
-    </CardContent>
-  </Card>
-  
-  {/* Teacher/Student Login Card */}
-  <Card>
-    <CardContent>
-      {/* Existing login form */}
-    </CardContent>
-  </Card>
-</div>
-```
+**From Student Handbook:**
+- Admission requirements (60% minimum, English/Math proficiency)
+- Vision, Mission, Values
+- Student services, clubs, organizations
 
-### Step 3: Create Guest Chat Page
-**File**: `src/pages/guest/GuestChat.tsx`
-
-A specialized chat interface for university information only:
-
-```tsx
-const GuestChat = () => {
-  // Similar to StudentChat but:
-  // - No course selection (courseId = null)
-  // - Different AI prompt focused on university info
-  // - Different welcome message
-  // - No voice features (simpler interface)
-  // - Navigation tabs: Colleges, Programs, Contact Us
-  
-  const initialMessage = {
-    role: 'assistant',
-    content: `Hello! Ask me anything about the University of Technology Bahrain, 
-    its colleges, or campus facilities!`
-  };
-  
-  // Chat will use a different edge function or modified prompt
-};
-```
-
-### Step 4: Create Guest Layout
-**File**: `src/components/layout/GuestLayout.tsx`
-
-A simpler layout for guests without the full sidebar:
-
-```tsx
-export function GuestLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Simple header with logo and Back to Login */}
-      <header className="h-16 border-b bg-card flex items-center justify-between px-4">
-        <img src={logo} alt="UTB" className="h-10" />
-        <div className="flex items-center gap-4">
-          <span>About University of Technology Bahrain</span>
-          <Button variant="outline" onClick={goToLogin}>
-            <LogIn className="w-4 h-4 mr-2" />
-            Log In
-          </Button>
-        </div>
-      </header>
-      
-      {/* Navigation Tabs */}
-      <nav className="flex justify-center gap-4 p-4 border-b">
-        <Button variant="ghost">Colleges</Button>
-        <Button variant="ghost">Programs</Button>
-        <Button variant="ghost">Contact Us</Button>
-      </nav>
-      
-      {/* Content */}
-      <main className="p-4">
-        {children}
-      </main>
-    </div>
-  );
-}
-```
-
-### Step 5: Create Guest AI Edge Function
-**File**: `supabase/functions/guest-chat/index.ts`
-
-A modified chat function specifically for university information:
-
-```typescript
-const systemInstruction = `You are a helpful assistant for the University of Technology Bahrain (UTB).
-
-Your role is to:
-1. Answer questions about UTB's colleges and programs
-2. Provide information about campus facilities
-3. Share contact information and admission details
-4. Explain UTB's history and achievements
-
-IMPORTANT RULES:
-- You are NOT a course tutor - do not answer course-specific questions
-- If asked about specific courses, politely explain that the user needs to log in as a student
-- Focus only on general university information
-- Be friendly and welcoming to prospective students and visitors
-
-University Information:
-- Location: Kingdom of Bahrain
-- Colleges: Engineering, Business, IT, etc.
-- Contact: [university contact details]
-`;
-```
-
-### Step 6: Update App Routes
-**File**: `src/App.tsx`
-
-Add guest routes that are accessible without full authentication:
-
-```tsx
-// Guest Routes (accessible after selecting Guest Mode)
-<Route path="/guest" element={
-  user?.role === 'guest' ? <GuestChat /> : <Navigate to="/" replace />
-} />
-```
+**From Other Manuals:**
+- University structure (Organogram)
+- Contact information
+- Policies and procedures
 
 ## Files to Create/Modify
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/contexts/AuthContext.tsx` | Modify | Add 'guest' role and loginAsGuest function |
-| `src/pages/Login.tsx` | Modify | Add Guest Mode selection card |
-| `src/pages/guest/GuestChat.tsx` | Create | Guest chat interface with UTB info |
-| `src/components/layout/GuestLayout.tsx` | Create | Simple header layout for guests |
-| `supabase/functions/guest-chat/index.ts` | Create | AI chat for university info only |
-| `src/App.tsx` | Modify | Add guest routes |
+| Database migration | Create | Add `guest_documents` table |
+| `supabase/functions/guest-chat/index.ts` | Modify | Add document search and RAG |
+| `src/pages/guest/GuestChat.tsx` | Modify | Update UI to show document sources |
+| `public/guest-docs/` | Create | Store documents for reference |
 
-## Guest Limitations vs Student
+## Database Schema
 
-| Feature | Guest | Student |
-|---------|-------|---------|
-| View university info | Yes | Yes |
-| Ask about UTB | Yes | Yes |
-| Ask course questions | No | Yes |
-| Voice chat | No | Yes |
-| View course materials | No | Yes |
-| Submit assignments | No | Yes |
-| Take quizzes | No | Yes |
+```text
+┌─────────────────────────────────────────┐
+│          guest_documents                 │
+├─────────────────────────────────────────┤
+│ id              UUID (PK)               │
+│ document_name   TEXT (file name)        │
+│ document_title  TEXT (display name)     │
+│ content_text    TEXT (full content)     │
+│ section         TEXT (optional section) │
+│ created_at      TIMESTAMP               │
+└─────────────────────────────────────────┘
+```
 
 ## Technical Details
 
-### Database Changes
-No database changes required - guests don't store data.
+### Document Processing
+Each document will be split into manageable sections (by chapter/heading) for more accurate retrieval. Estimated total content:
+- Student Handbook: ~1,160 lines
+- University Catalogue: ~1,886 lines
+- Faculty Manual: ~1,508 lines
+- Admin Staff Manual: ~1,249 lines
+- Plus 3 more documents
 
-### Edge Function
-The `guest-chat` function will:
-- Not require courseId
-- Use a UTB-focused system prompt
-- Not access course materials table
-- Have static university information embedded in the prompt
+### Search Strategy
+1. **Keyword matching**: Match user query keywords against document content
+2. **Section prioritization**: Return most relevant sections first
+3. **Context limit**: Include up to 8,000 tokens of relevant content in prompt
 
-### Security
-- Guest users cannot access `/student/*` or `/teacher/*` routes
-- Guest chat function doesn't access any course or student data
-- All guest interactions are read-only informational queries
+### Guest Limitations (Unchanged)
+- Cannot access course-specific materials
+- Cannot ask about specific course content
+- Can only get general university information from these 7 documents
+
+## User Experience
+
+```text
+Guest: "What are the admission requirements?"
+
+AI: "Based on the UTB Student Handbook, the admission requirements are:
+
+1. **General Requirements:**
+   - Minimum 60% in Secondary School Certificate (Thanawya)
+   - Complete admission application with required documents
+
+2. **English Proficiency:**
+   - 80% or higher in English courses, OR
+   - IELTS 5.0+ or TOEFL 450+, OR
+   - Pass English Placement Test (51%+)
+
+3. **Mathematics Requirements:**
+   - Varies by program (70% for Engineering, 60% for Business)
+
+For more details, please contact the Admissions Office or visit www.utb.edu.bh"
+```
 
