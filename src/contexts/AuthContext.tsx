@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-export type UserRole = 'teacher' | 'student' | null;
+export type UserRole = 'teacher' | 'student' | 'guest' | null;
 
 interface User {
   id: string;
@@ -11,6 +11,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   login: (id: string) => void;
+  loginAsGuest: () => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -26,6 +27,13 @@ const mockUsers: Record<string, User> = {
   'S003': { id: 'S003', name: 'Fatima Al-Ali', role: 'student' },
 };
 
+// Guest user
+const guestUser: User = {
+  id: 'GUEST',
+  name: 'Guest',
+  role: 'guest'
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
@@ -36,6 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginAsGuest = () => {
+    setUser(guestUser);
+  };
+
   const logout = () => {
     setUser(null);
   };
@@ -44,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     <AuthContext.Provider value={{ 
       user, 
       login, 
+      loginAsGuest,
       logout, 
       isAuthenticated: !!user 
     }}>

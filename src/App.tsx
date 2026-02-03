@@ -20,6 +20,7 @@ import StudentAssignments from "./pages/student/StudentAssignments";
 import StudentQuizzes from "./pages/student/StudentQuizzes";
 import StudentGrades from "./pages/student/StudentGrades";
 import StudentChat from "./pages/student/StudentChat";
+import GuestChat from "./pages/guest/GuestChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,7 +34,25 @@ function ProtectedRoute({ children, role }: { children: React.ReactNode; role?: 
   }
   
   if (role && user?.role !== role) {
+    if (user?.role === 'guest') {
+      return <Navigate to="/guest" replace />;
+    }
     return <Navigate to={user?.role === 'teacher' ? '/teacher' : '/student'} replace />;
+  }
+  
+  return <>{children}</>;
+}
+
+// Guest Route Component
+function GuestRoute({ children }: { children: React.ReactNode }) {
+  const { user, isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+  
+  if (user?.role !== 'guest') {
+    return <Navigate to={user?.role === 'teacher' ? '/teacher' : '/student/chat'} replace />;
   }
   
   return <>{children}</>;
@@ -46,11 +65,18 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={
         isAuthenticated ? (
-          <Navigate to={user?.role === 'teacher' ? '/teacher' : '/student/chat'} replace />
+          user?.role === 'guest' ? (
+            <Navigate to="/guest" replace />
+          ) : (
+            <Navigate to={user?.role === 'teacher' ? '/teacher' : '/student/chat'} replace />
+          )
         ) : (
           <Login />
         )
       } />
+      
+      {/* Guest Routes */}
+      <Route path="/guest" element={<GuestRoute><GuestChat /></GuestRoute>} />
       
       {/* Teacher Routes */}
       <Route path="/teacher" element={<ProtectedRoute role="teacher"><TeacherDashboard /></ProtectedRoute>} />
