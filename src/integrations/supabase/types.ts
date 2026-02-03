@@ -339,6 +339,33 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_documents: {
+        Row: {
+          content_text: string
+          created_at: string
+          document_name: string
+          document_title: string
+          id: string
+          section_title: string | null
+        }
+        Insert: {
+          content_text: string
+          created_at?: string
+          document_name: string
+          document_title: string
+          id?: string
+          section_title?: string | null
+        }
+        Update: {
+          content_text?: string
+          created_at?: string
+          document_name?: string
+          document_title?: string
+          id?: string
+          section_title?: string | null
+        }
+        Relationships: []
+      }
       lesson_slides: {
         Row: {
           ai_generated: boolean | null
