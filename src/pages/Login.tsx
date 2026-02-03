@@ -4,8 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, AlertCircle, Bot, ArrowRight } from 'lucide-react';
+import { User, AlertCircle, Bot, ArrowRight, Smartphone } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import logo from '@/assets/logo.png';
+
+const APP_URL = 'https://ai-teacher-2026.lovable.app';
 
 const Login = () => {
   const [userId, setUserId] = useState('');
@@ -146,6 +149,31 @@ const Login = () => {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* QR Code Section */}
+        <div className="mt-8 text-center">
+          <Card className="max-w-sm mx-auto border-0 shadow-lg bg-card/80 backdrop-blur">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <Smartphone className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium">Mobile Access</span>
+              </div>
+              <div className="bg-white p-4 rounded-xl inline-block">
+                <QRCodeSVG 
+                  value={APP_URL}
+                  size={120}
+                  bgColor="#ffffff"
+                  fgColor="#000000"
+                  level="M"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                Scan QR to access the platform on your phone<br />
+                or continue on this device
+              </p>
             </CardContent>
           </Card>
         </div>

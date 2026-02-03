@@ -14,6 +14,7 @@ import TeacherAssignments from "./pages/teacher/TeacherAssignments";
 import TeacherQuizzes from "./pages/teacher/TeacherQuizzes";
 import TeacherGrading from "./pages/teacher/TeacherGrading";
 import TeacherStudents from "./pages/teacher/TeacherStudents";
+import TeacherChat from "./pages/teacher/TeacherChat";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentLessons from "./pages/student/StudentLessons";
 import StudentAssignments from "./pages/student/StudentAssignments";
@@ -80,6 +81,7 @@ function AppRoutes() {
       
       {/* Teacher Routes */}
       <Route path="/teacher" element={<ProtectedRoute role="teacher"><TeacherDashboard /></ProtectedRoute>} />
+      <Route path="/teacher/chat" element={<ProtectedRoute role="teacher"><TeacherChat /></ProtectedRoute>} />
       <Route path="/teacher/content" element={<ProtectedRoute role="teacher"><TeacherContent /></ProtectedRoute>} />
       <Route path="/teacher/lessons" element={<ProtectedRoute role="teacher"><TeacherLessons /></ProtectedRoute>} />
       <Route path="/teacher/assignments" element={<ProtectedRoute role="teacher"><TeacherAssignments /></ProtectedRoute>} />
