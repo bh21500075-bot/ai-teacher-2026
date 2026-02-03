@@ -2,11 +2,18 @@ import { useState, useEffect, useRef } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Upload, FileText, BookOpen, ClipboardList, CheckCircle, AlertCircle, Trash2, Loader2 } from 'lucide-react';
+import { Upload, FileText, BookOpen, ClipboardList, CheckCircle, AlertCircle, Trash2, Loader2, Network, Route, Layers, Globe } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Database } from '@/integrations/supabase/types';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type MaterialType = Database['public']['Enums']['material_type'];
 
@@ -19,6 +26,12 @@ interface UploadedFile {
   file_url: string;
 }
 
+interface Course {
+  id: string;
+  code: string;
+  title: string;
+}
+
 const materialTypes: { type: MaterialType; label: string; description: string; icon: React.ReactNode }[] = [
   { type: 'textbook', label: 'Textbook & References', description: 'Course materials & books', icon: <BookOpen className="w-6 h-6 text-primary" /> },
   { type: 'manual', label: 'Course Manual', description: 'Guides & specifications', icon: <FileText className="w-6 h-6 text-accent" /> },
@@ -26,27 +39,40 @@ const materialTypes: { type: MaterialType; label: string; description: string; i
   { type: 'other', label: 'Other Materials', description: 'Additional resources', icon: <FileText className="w-6 h-6 text-muted-foreground" /> },
 ];
 
+const LEVEL_ICONS: Record<string, React.ReactNode> = {
+  'CCNA1': <Network className="w-4 h-4" />,
+  'CCNA2': <Route className="w-4 h-4" />,
+  'CCNA3': <Layers className="w-4 h-4" />,
+  'CCNA4': <Globe className="w-4 h-4" />,
+};
+
 const TeacherContent = () => {
-  const { user: authUser } = useAuth(); // Use demo auth context
+  const { user: authUser } = useAuth();
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedType, setSelectedType] = useState<MaterialType>('textbook');
-  const [courseId, setCourseId] = useState<string | null>(null);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreatingCourse, setIsCreatingCourse] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Fetch course and materials on mount
+  // Fetch courses and materials on mount
   useEffect(() => {
-    fetchCourseAndMaterials();
+    fetchCoursesAndMaterials();
   }, [authUser]);
 
-  const fetchCourseAndMaterials = async () => {
+  // Fetch materials when selected course changes
+  useEffect(() => {
+    if (selectedCourseId) {
+      fetchMaterialsForCourse(selectedCourseId);
+    }
+  }, [selectedCourseId]);
+
+  const fetchCoursesAndMaterials = async () => {
     try {
       setIsLoading(true);
       
-      // Use demo auth context instead of Supabase auth
       if (!authUser) {
         toast({
           title: 'Not Logged In',
@@ -57,7 +83,6 @@ const TeacherContent = () => {
         return;
       }
 
-      // Check role from demo auth context
       if (authUser.role !== 'teacher') {
         toast({
           title: 'Access Denied',
@@ -68,83 +93,23 @@ const TeacherContent = () => {
         return;
       }
 
-      // For demo: fetch or create the CENG645 course (using code as identifier)
-      let { data: courses, error: courseError } = await supabase
+      // Fetch all CCNA courses
+      const { data: coursesData, error: courseError } = await supabase
         .from('courses')
-        .select('id')
-        .eq('code', 'CENG645')
-        .limit(1);
+        .select('id, code, title')
+        .like('code', 'CCNA%')
+        .eq('is_active', true)
+        .order('code');
 
       if (courseError) {
-        console.error('Error fetching course:', courseError);
+        console.error('Error fetching courses:', courseError);
+        setIsLoading(false);
+        return;
       }
 
-      // If no course exists, auto-create CENG645 (without teacher_id constraint for demo)
-      if (!courses || courses.length === 0) {
-        setIsCreatingCourse(true);
-        
-        // For demo, we'll create a course and store a placeholder teacher_id
-        // Since courses table requires teacher_id as UUID, we generate a consistent one from demo ID
-        const demoTeacherId = '00000000-0000-0000-0000-000000000001'; // Fixed UUID for demo teacher
-        
-        const { data: newCourse, error: createError } = await supabase
-          .from('courses')
-          .insert({
-            title: 'Advanced Topics in Computer Engineering',
-            code: 'CENG645',
-            description: 'Advanced computer engineering course for graduation project',
-            teacher_id: demoTeacherId,
-            is_active: true
-          })
-          .select()
-          .single();
-
-        setIsCreatingCourse(false);
-
-        if (createError) {
-          console.error('Error creating course:', createError);
-          toast({
-            title: 'Error',
-            description: 'Failed to create course. Please try again.',
-            variant: 'destructive'
-          });
-          return;
-        }
-
-        if (newCourse) {
-          courses = [newCourse];
-          toast({
-            title: 'Course Created',
-            description: 'CENG645 course has been set up. You can now upload materials.',
-          });
-        }
-      }
-
-      if (courses && courses.length > 0) {
-        setCourseId(courses[0].id);
-        
-        // Fetch materials for this course
-        const { data: materials, error: materialsError } = await supabase
-          .from('course_materials')
-          .select('id, title, material_type, file_url, is_processed')
-          .eq('course_id', courses[0].id)
-          .order('uploaded_at', { ascending: false });
-
-        if (materialsError) {
-          console.error('Error fetching materials:', materialsError);
-          return;
-        }
-
-        if (materials) {
-          setUploadedFiles(materials.map(m => ({
-            id: m.id,
-            name: m.title,
-            type: (m.material_type as MaterialType) || 'other',
-            size: '-',
-            status: m.is_processed ? 'processed' : 'processing',
-            file_url: m.file_url || ''
-          })));
-        }
+      if (coursesData && coursesData.length > 0) {
+        setCourses(coursesData);
+        setSelectedCourseId(coursesData[0].id);
       }
     } catch (error) {
       console.error('Error:', error);
@@ -153,14 +118,42 @@ const TeacherContent = () => {
     }
   };
 
+  const fetchMaterialsForCourse = async (courseId: string) => {
+    try {
+      const { data: materials, error: materialsError } = await supabase
+        .from('course_materials')
+        .select('id, title, material_type, file_url, is_processed')
+        .eq('course_id', courseId)
+        .order('uploaded_at', { ascending: false });
+
+      if (materialsError) {
+        console.error('Error fetching materials:', materialsError);
+        return;
+      }
+
+      if (materials) {
+        setUploadedFiles(materials.map(m => ({
+          id: m.id,
+          name: m.title,
+          type: (m.material_type as MaterialType) || 'other',
+          size: '-',
+          status: m.is_processed ? 'processed' : 'processing',
+          file_url: m.file_url || ''
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching materials:', error);
+    }
+  };
+
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    if (!courseId) {
+    if (!selectedCourseId) {
       toast({
-        title: 'No Course Found',
-        description: 'Please create a course first before uploading materials.',
+        title: 'No Course Selected',
+        description: 'Please select a course level first before uploading materials.',
         variant: 'destructive'
       });
       return;
@@ -182,7 +175,7 @@ const TeacherContent = () => {
         }
 
         // Upload to storage
-        const fileName = `${courseId}/${Date.now()}_${file.name}`;
+        const fileName = `${selectedCourseId}/${Date.now()}_${file.name}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('course-materials')
           .upload(fileName, file);
@@ -206,7 +199,7 @@ const TeacherContent = () => {
         const { data: material, error: dbError } = await supabase
           .from('course_materials')
           .insert({
-            course_id: courseId,
+            course_id: selectedCourseId,
             title: file.name,
             material_type: selectedType,
             file_url: urlData.publicUrl,
@@ -331,9 +324,43 @@ const TeacherContent = () => {
     return found?.icon || <FileText className="w-5 h-5 text-primary" />;
   };
 
+  const selectedCourse = courses.find(c => c.id === selectedCourseId);
+
   return (
     <DashboardLayout title="Upload Content">
       <div className="space-y-6">
+        {/* Course Level Selection */}
+        <Card className="border-0 shadow-sm">
+          <CardHeader>
+            <CardTitle>Select CCNA Level</CardTitle>
+            <CardDescription>
+              Choose which level you want to upload materials for
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Select value={selectedCourseId || ''} onValueChange={setSelectedCourseId}>
+              <SelectTrigger className="w-full md:w-[400px]">
+                <SelectValue placeholder="Select a course level" />
+              </SelectTrigger>
+              <SelectContent>
+                {courses.map(course => (
+                  <SelectItem key={course.id} value={course.id}>
+                    <div className="flex items-center gap-2">
+                      {LEVEL_ICONS[course.code] || <BookOpen className="w-4 h-4" />}
+                      <span>{course.code}: {course.title.split(': ')[1] || course.title}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedCourse && (
+              <p className="text-sm text-muted-foreground mt-2">
+                Currently managing: <strong>{selectedCourse.title}</strong>
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Upload Area */}
         <Card className="border-0 shadow-sm">
           <CardHeader>
@@ -352,8 +379,10 @@ const TeacherContent = () => {
               className="hidden"
             />
             <div 
-              className="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed border-border rounded-xl p-8 text-center transition-colors cursor-pointer ${
+                selectedCourseId ? 'hover:border-primary/50' : 'opacity-50 cursor-not-allowed'
+              }`}
+              onClick={() => selectedCourseId && fileInputRef.current?.click()}
             >
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                 {isUploading ? (
@@ -368,7 +397,7 @@ const TeacherContent = () => {
               <p className="text-sm text-muted-foreground mb-4">
                 Supports: TXT, DOCX, PDF (Max 20MB)
               </p>
-              <Button disabled={isUploading}>
+              <Button disabled={isUploading || !selectedCourseId}>
                 <Upload className="w-4 h-4 mr-2" />
                 Choose Files
               </Button>
@@ -405,23 +434,21 @@ const TeacherContent = () => {
         {/* Uploaded Files List */}
         <Card className="border-0 shadow-sm">
           <CardHeader>
-            <CardTitle>Uploaded Files</CardTitle>
+            <CardTitle>Uploaded Files {selectedCourse && `- ${selectedCourse.code}`}</CardTitle>
             <CardDescription>
-              All materials uploaded for AI tutor training
+              Materials uploaded for this level's AI tutor training
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading || isCreatingCourse ? (
+            {isLoading ? (
               <div className="flex flex-col items-center justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-primary mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  {isCreatingCourse ? 'Setting up CENG645 course...' : 'Loading materials...'}
-                </p>
+                <p className="text-sm text-muted-foreground">Loading materials...</p>
               </div>
             ) : uploadedFiles.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No files uploaded yet</p>
+                <p>No files uploaded yet for this level</p>
                 <p className="text-sm">Upload course materials to train the AI tutor</p>
               </div>
             ) : (
