@@ -1,172 +1,124 @@
 
 
-# Plan: Enhanced Voice Button with Auto-Stop
+# Plan: Update Color Theme to UTB Brand Colors
 
 ## Overview
-Make the microphone button bigger and add intelligent auto-stop functionality that detects 2 seconds of silence during recording, with a maximum recording duration of 15 seconds.
+Update the project's color scheme to match the University of Technology Bahrain (UTB) brand colors: **Slate (dark gray)**, **Red (crimson)**, and **White**.
 
-## Changes Summary
+## UTB Color Palette (HSL Values)
 
-| Feature | Current | New |
-|---------|---------|-----|
-| Button Size | `size="icon"` (40x40px) | Custom large size (64x64px) |
-| Max Recording | Unlimited | 15 seconds |
-| Silence Detection | None | Auto-stop after 2 seconds silence |
+| Color | Hex | HSL | Usage |
+|-------|-----|-----|-------|
+| Slate/Charcoal | `#3d3d3d` | `0 0% 24%` | Sidebar, headers, dark elements |
+| UTB Red | `#c8102e` | `350 85% 42%` | Primary buttons, accents, links |
+| White | `#ffffff` | `0 0% 100%` | Backgrounds, cards |
+| Light Gray | `#f5f5f5` | `0 0% 96%` | Secondary backgrounds |
 
-## Implementation Steps
+## Changes to Make
 
-### Step 1: Update useVoiceChat Hook
-**File**: `src/hooks/useVoiceChat.ts`
+### File: `src/index.css`
 
-Add silence detection and auto-stop timer:
+Update CSS variables to use UTB colors:
 
-```typescript
-// New refs for timers
-const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-const maxDurationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-const audioContextRef = useRef<AudioContext | null>(null);
-const analyzerRef = useRef<AnalyserNode | null>(null);
-const silenceStartRef = useRef<number | null>(null);
+**Light Mode (`:root`)**
+```css
+:root {
+  /* UTB Theme Colors */
+  --background: 0 0% 97%;           /* Light gray background */
+  --foreground: 0 0% 15%;           /* Dark text */
 
-// Add onAutoStop callback parameter
-const startRecording = useCallback(async (onAutoStop?: () => void) => {
-  // ... existing setup code ...
-  
-  // Set up audio analysis for silence detection
-  const audioContext = new AudioContext();
-  const analyzer = audioContext.createAnalyser();
-  const source = audioContext.createMediaStreamSource(stream);
-  source.connect(analyzer);
-  
-  // Check for silence every 100ms
-  const checkSilence = () => {
-    const dataArray = new Uint8Array(analyzer.frequencyBinCount);
-    analyzer.getByteFrequencyData(dataArray);
-    const volume = dataArray.reduce((a, b) => a + b) / dataArray.length;
-    
-    if (volume < 10) {
-      // Silence detected
-      if (!silenceStartRef.current) {
-        silenceStartRef.current = Date.now();
-      } else if (Date.now() - silenceStartRef.current > 2000) {
-        // 2 seconds of silence - auto stop
-        onAutoStop?.();
-        return;
-      }
-    } else {
-      silenceStartRef.current = null;
-    }
-    
-    if (isRecording) {
-      requestAnimationFrame(checkSilence);
-    }
-  };
-  
-  // Max 15 second recording
-  maxDurationTimeoutRef.current = setTimeout(() => {
-    onAutoStop?.();
-  }, 15000);
-  
-  checkSilence();
-});
+  --card: 0 0% 100%;                /* White cards */
+  --card-foreground: 0 0% 15%;
+
+  /* Primary: UTB Red */
+  --primary: 350 85% 42%;           /* #c8102e */
+  --primary-foreground: 0 0% 100%;
+
+  /* Secondary: Light Gray */
+  --secondary: 0 0% 94%;
+  --secondary-foreground: 0 0% 24%;
+
+  --muted: 0 0% 94%;
+  --muted-foreground: 0 0% 45%;
+
+  /* Accent: UTB Red (lighter) */
+  --accent: 350 75% 50%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 0 0% 88%;
+  --input: 0 0% 88%;
+  --ring: 350 85% 42%;
+
+  /* Sidebar - UTB Slate/Charcoal */
+  --sidebar-background: 0 0% 24%;   /* Dark slate */
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-primary: 0 0% 100%;
+  --sidebar-primary-foreground: 0 0% 24%;
+  --sidebar-accent: 350 85% 42%;    /* UTB Red accent */
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 0 0% 30%;
+  --sidebar-ring: 350 85% 42%;
+
+  /* Chat colors */
+  --chat-user: 350 85% 42%;         /* UTB Red for user messages */
+  --chat-ai: 0 0% 94%;              /* Light gray for AI messages */
+}
 ```
 
-### Step 2: Update StudentChat Component
-**File**: `src/pages/student/StudentChat.tsx`
+**Dark Mode (`.dark`)**
+```css
+.dark {
+  --background: 0 0% 8%;
+  --foreground: 0 0% 96%;
 
-Make the button bigger and integrate auto-stop:
+  --card: 0 0% 12%;
+  --card-foreground: 0 0% 96%;
 
-```tsx
-// Updated microphone button with larger size
-<Button
-  variant={isRecording ? 'destructive' : 'outline'}
-  onClick={handleVoiceToggle}
-  disabled={isLoading || !course || isProcessing}
-  title={isRecording ? 'Click to stop and send' : 'Click to start recording'}
-  className={`h-16 w-16 rounded-full ${isRecording ? 'animate-pulse' : ''}`}
->
-  {isProcessing ? (
-    <Loader2 className="w-8 h-8 animate-spin" />
-  ) : isRecording ? (
-    <MicOff className="w-8 h-8" />
-  ) : (
-    <Mic className="w-8 h-8" />
-  )}
-</Button>
+  --primary: 350 75% 50%;
+  --primary-foreground: 0 0% 100%;
 
-// Update hint text with recording info
-{isRecording ? (
-  <span className="text-destructive flex items-center justify-center gap-1">
-    <span className="w-2 h-2 bg-destructive rounded-full animate-pulse"></span>
-    Recording... (auto-stops after 2s silence or 15s max)
-  </span>
-) : (
-  'Click the mic button to speak'
-)}
+  --secondary: 0 0% 18%;
+  --secondary-foreground: 0 0% 96%;
+
+  /* ... similar updates for dark mode ... */
+
+  --sidebar-background: 0 0% 10%;
+  --sidebar-accent: 350 75% 45%;
+}
 ```
 
-### Step 3: Pass Auto-Stop Callback
-Update the toggle handler to pass the auto-stop callback:
+## Visual Preview
 
-```tsx
-const handleVoiceToggle = async () => {
-  if (isRecording) {
-    await handleVoiceInput();
-  } else {
-    startRecording(handleVoiceInput); // Pass callback for auto-stop
-  }
-};
+```text
+┌─────────────────────────────────────────────────────┐
+│ ┌──────────┐                                        │
+│ │ SIDEBAR  │  ┌─────────────────────────────────┐   │
+│ │ (Slate)  │  │  Content Area (White/Light)     │   │
+│ │ #3d3d3d  │  │                                 │   │
+│ │          │  │  ┌─────────────────────────┐    │   │
+│ │ ● Active │  │  │ [RED BUTTON] Primary    │    │   │
+│ │   (Red)  │  │  └─────────────────────────┘    │   │
+│ │          │  │                                 │   │
+│ └──────────┘  └─────────────────────────────────┘   │
+└─────────────────────────────────────────────────────┘
 ```
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/hooks/useVoiceChat.ts` | Add silence detection, max duration timer, auto-stop callback |
-| `src/pages/student/StudentChat.tsx` | Bigger button (64x64px), updated hint text |
+| `src/index.css` | Update all CSS color variables to UTB palette |
 
-## Technical Details
+## Color Mapping Summary
 
-### Silence Detection Algorithm
-- Uses Web Audio API `AnalyserNode` to monitor audio levels
-- Checks volume every 100ms using `requestAnimationFrame`
-- If average frequency volume < 10 for 2 consecutive seconds = silence
-- Triggers auto-stop and sends message
-
-### Timers
-- **Silence timeout**: 2 seconds of continuous silence
-- **Max duration**: 15 seconds absolute limit
-
-### Cleanup
-- Clear all timeouts when recording stops
-- Close AudioContext when done
-
-## User Experience
-
-```text
-1. User clicks large 🎤 button → Recording starts
-2. User speaks their question (up to 15 seconds)
-3. Auto-stops when:
-   - User is silent for 2 seconds, OR
-   - User clicks button again, OR
-   - 15 seconds elapsed
-4. Message transcribed and sent automatically
-5. AI responds with text + voice
-```
-
-## Visual Design
-
-```text
-┌─────────────────────────────────────────────┐
-│                                             │
-│  [═══════ Text Input ═══════]  [Send]       │
-│                                             │
-│              ┌──────────┐                   │
-│              │   🎤     │  ← 64x64px        │
-│              │  (big)   │    Round button   │
-│              └──────────┘                   │
-│                                             │
-│   "Recording... auto-stops after 2s silence"│
-└─────────────────────────────────────────────┘
-```
+| Element | Current Color | New UTB Color |
+|---------|---------------|---------------|
+| Primary (buttons, links) | Blue `#1a5490` | Red `#c8102e` |
+| Sidebar background | Dark Blue | Slate/Charcoal `#3d3d3d` |
+| Sidebar accent | Blue | Red `#c8102e` |
+| Background | Light blue-gray | Light gray/white |
+| Borders | Blue-tinted gray | Neutral gray |
 
