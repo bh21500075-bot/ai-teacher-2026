@@ -4,7 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, User, AlertCircle } from 'lucide-react';
+import { User, AlertCircle } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 const Login = () => {
   const [userId, setUserId] = useState('');
@@ -44,20 +45,14 @@ const Login = () => {
       <Card className="w-full max-w-md relative z-10 shadow-xl border-0">
         <CardHeader className="text-center space-y-4 pb-2">
           {/* Logo */}
-          <div className="mx-auto w-20 h-20 bg-primary rounded-2xl flex items-center justify-center shadow-lg">
-            <GraduationCap className="w-10 h-10 text-primary-foreground" />
+          <div className="mx-auto">
+            <img src={logo} alt="University of Technology Bahrain" className="h-20 w-auto" />
           </div>
           
           <div>
-            <CardTitle className="text-2xl font-bold text-primary leading-tight">
+            <CardTitle className="text-xl font-bold text-primary leading-tight">
               AI-Powered Educational Robot for the Next Generation of Smart Learning with IoT and Cloud Intelligence
             </CardTitle>
-          </div>
-
-          {/* University Badge */}
-          <div className="inline-flex items-center gap-2 bg-secondary/50 px-4 py-2 rounded-full text-sm text-muted-foreground">
-            <GraduationCap className="w-4 h-4" />
-            University of Technology Bahrain
           </div>
         </CardHeader>
 

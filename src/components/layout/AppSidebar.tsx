@@ -15,20 +15,18 @@ import {
 import { NavLink } from '@/components/NavLink';
 import { Button } from '@/components/ui/button';
 import {
-  GraduationCap,
   LayoutDashboard,
   Upload,
   FileText,
   ClipboardList,
   Users,
-  Bell,
   BookOpen,
   MessageSquare,
   Award,
-  Settings,
   LogOut,
   CheckCircle,
 } from 'lucide-react';
+import logo from '@/assets/logo.png';
 
 const teacherMenuItems = [
   { title: 'Dashboard', url: '/teacher', icon: LayoutDashboard },
@@ -66,15 +64,7 @@ export function AppSidebar() {
     <Sidebar className="border-r-0">
       <SidebarHeader className="p-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-sidebar-primary rounded-xl flex items-center justify-center">
-            <GraduationCap className="w-5 h-5 text-sidebar-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="font-bold text-lg text-sidebar-foreground">EduBot AI</h1>
-            <p className="text-xs text-sidebar-foreground/70">
-              {user?.role === 'teacher' ? 'Teacher Panel' : 'Student Panel'}
-            </p>
-          </div>
+          <img src={logo} alt="University of Technology Bahrain" className="h-12 w-auto" />
         </div>
       </SidebarHeader>
 
