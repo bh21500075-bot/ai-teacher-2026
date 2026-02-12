@@ -1,258 +1,176 @@
 
-# Plan: AI Teacher Platform – Functional Review & Improvement Implementation
+# Plan: Platform-Wide Demo Fixes and Content Updates
 
 ## Overview
-This plan addresses all 30+ improvements identified in the functional review, organized into 5 major sections: Main Page, Guest Mode, Teacher Mode, Student Mode, and Missing Features.
+This plan addresses all issues from the functional review notes across Guest Mode, Student Mode, and Teacher Mode. The changes are organized into 3 sections with approximately 30 individual fixes.
 
 ---
 
-## Section 1: Main Page & QR Code
+## Section 1: Guest Mode Fixes
 
-### 1.1 Add QR Code to Login Page
-**Files:** `src/pages/Login.tsx`
+### 1a. Contact Us Page Updates
+**File:** `src/pages/guest/ContactInfo.tsx`
+- Change phone number from `+973 1700 5577` to `80001800`
+- Remove fax line entirely
+- Change "Apply Now" link from `https://www.utb.edu.bh/admissions` to `https://www.utb.edu.bh/undergraduate-students/`
 
-- Generate QR code linking to the live app URL
-- Add QR code component below the login cards
-- Include onboarding text: "Scan QR to access the platform on your phone or continue on this device"
-- Install QR code library: `qrcode.react`
+### 1b. Programs Page - Reorder and Update
+**File:** `src/pages/guest/ProgramsInfo.tsx`
+- Reorder colleges: **Engineering first**, then Computer Studies, then Business
+- Update Engineering programs:
+  - Informatics Engineering (replaces Industrial Engineering)
+  - Mechatronics Engineering (replaces Mechanical Engineering)
+  - Environmental Engineering (replaces Energy Engineering)
+- Add Master programs:
+  - MBA (already exists)
+  - MSc in Digital Marketing (new)
+  - MSc in Logistics and Supply Chain Management (new)
 
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                    [UTB Logo]                                    │
-│    AI-Powered Educational Robot...                              │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌──────────────────┐    ┌──────────────────┐                   │
-│  │   Guest Mode     │    │ Teacher/Student  │                   │
-│  │   [Bot Icon]     │    │   [User Icon]    │                   │
-│  └──────────────────┘    └──────────────────┘                   │
-├─────────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │       [QR Code]                                             ││
-│  │   Scan to access on mobile                                  ││
-│  └─────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Section 2: Guest Mode Improvements
-
-### 2.1 Rename "Log In" to "Home"
-**Files:** `src/components/layout/GuestLayout.tsx`
-- Change button text from "Log In" to "Home"
-- Keep the same functionality (returns to login page)
-
-### 2.2 Add Microphone Button & Voice Interaction
-**Files:** `src/pages/guest/GuestChat.tsx`, `supabase/functions/guest-chat/index.ts`
-- Import and use `useVoiceChat` hook (already exists in project)
-- Add microphone toggle button similar to StudentChat
-- Add voice output for AI responses
-- Update guest-chat edge function to support voice context
-
-### 2.3 Add QR Code in Guest Mode
-**Files:** `src/pages/guest/GuestChat.tsx`, `src/components/layout/GuestLayout.tsx`
-- Add QR code component in the header or contact section
-- Make QR visible without login
+### 1c. Colleges Page - Update Content
+**File:** `src/pages/guest/CollegesInfo.tsx`
+- Rename "College of Engineering & Technology" to "College of Engineering"
+- Update programs to match: Informatics Engineering, Mechatronics Engineering, Environmental Engineering
+- Move Engineering card to first position
+- Update Business college programs to include MBA, MSc Digital Marketing, MSc Logistics & Supply Chain Management
 
 ---
 
-## Section 3: Teacher Mode Improvements
+## Section 2: Student Mode Fixes
 
-### 3.1 Rename "Select CCNA Level" to "Select Course"
-**Files:** `src/pages/teacher/TeacherContent.tsx`
-- Change header from "Select CCNA Level" to "Select Course"
-- Change dropdown labels:
-  - CCNA1 → Network 1
-  - CCNA2 → Network 2
-  - CCNA3 → Network 3
-  - CCNA4 → Network 4
+### 2a. Dashboard - Back Button Fix
+**File:** `src/pages/student/StudentDashboard.tsx`
+- The dashboard is the root student page; no "back" functionality is needed. The issue is likely browser back navigation looping. No code change needed if sidebar navigation works correctly -- the sidebar links handle navigation.
 
-### 3.2 Add Course Selection Dropdown to All Teacher Pages
+### 2b. Dashboard - Upcoming Tasks Link to Demo
+**File:** `src/pages/student/StudentDashboard.tsx`
+- Make the "Start" button on the first upcoming task (Assignment 3) link to a demo assignment page
+- Create a new demo route `/student/assignments/demo` with a simple demo assignment form
+- Add a visible "DEMO" badge on the button so users know it's a demo
 
-**Files to modify:**
-- `src/pages/teacher/TeacherLessons.tsx`
-- `src/pages/teacher/TeacherAssignments.tsx`
-- `src/pages/teacher/TeacherQuizzes.tsx`
-- `src/pages/teacher/TeacherGrading.tsx`
-- `src/pages/teacher/TeacherStudents.tsx`
+### 2c. Student Lessons - Course Names Blank Fix
+**File:** `src/pages/student/StudentLessons.tsx`
+- The `CourseSelector` component fetches from DB and courses exist (CCNA1-4). The issue is likely the component rendering before data loads. Add auto-select first course logic and ensure loading state works.
+- The "Review/Continue/Start" buttons are non-functional -- link the first lesson (Week 1) to a demo lesson page
+- Create demo lesson page `/student/lessons/demo` showing sample slides content
+- Add "DEMO" badge on the active demo button
 
-Each page will get:
+### 2d. Student Quizzes - Course Names Blank + Demo Quiz
+**File:** `src/pages/student/StudentQuizzes.tsx`
+- Same course selector fix as lessons
+- Link "Start Quiz" on Week 3 quiz to a demo quiz page
+- Create demo quiz page `/student/quizzes/demo` with 3-5 sample CCNA multiple choice questions
+- Add "DEMO" badge on active demo button
+
+---
+
+## Section 3: Teacher Mode Fixes
+
+### 3a. Dashboard - Total Students Link
+**File:** `src/pages/teacher/TeacherDashboard.tsx`
+- Make "Total Students" stat card clickable, linking to `/teacher/students`
+- Change "Approve" button text to "Review" in Grades Pending section
+- Link the first "Review" button to a demo grade review page `/teacher/grading/demo`
+- Add "DEMO" badge
+
+### 3b. Weekly Lessons - Course Names + Demo View
+**File:** `src/pages/teacher/TeacherLessons.tsx`
+- Course selector should auto-populate (already fetches from DB -- verify loading)
+- Make the first lesson's "View" button link to a demo lesson view page `/teacher/lessons/demo`
+- Add "DEMO" badge on active demo button
+
+### 3c. Assignments - Course Names + Demo Submissions
+**File:** `src/pages/teacher/TeacherAssignments.tsx`
+- Same course selector fix
+- Make first assignment's "View Submissions" button link to a demo submissions page `/teacher/assignments/demo`
+- Add "DEMO" badge
+
+### 3d. Quizzes - Course Names + Demo View
+**File:** `src/pages/teacher/TeacherQuizzes.tsx`
+- Same course selector fix
+- Make first quiz's "View" button link to a demo quiz review page `/teacher/quizzes/demo`
+- Add "DEMO" badge
+
+### 3e. Grade Approval - Course Names + Demo Review
+**File:** `src/pages/teacher/TeacherGrading.tsx`
+- Same course selector fix
+- Make first grade's "Review Submission" button link to a demo review page `/teacher/grading/demo`
+- Add "DEMO" badge
+
+### 3f. Students Page - Course Names + Demo Details
+**File:** `src/pages/teacher/TeacherStudents.tsx`
+- Same course selector fix
+- Make first student's "View Details" and "Grades" buttons link to demo pages
+- Add "DEMO" badge
+
+---
+
+## New Demo Pages to Create
+
+These are lightweight, static demo pages to showcase functionality:
+
+| Page | Route | Description |
+|------|-------|-------------|
+| `DemoLesson.tsx` | `/student/lessons/demo` | Shows sample lesson slides with navigation |
+| `DemoQuiz.tsx` | `/student/quizzes/demo` | 3-5 CCNA MCQ questions with submit |
+| `DemoAssignment.tsx` | `/student/assignments/demo` | Shows assignment questions with text input |
+| `TeacherDemoLesson.tsx` | `/teacher/lessons/demo` | Shows lesson content for teacher review |
+| `TeacherDemoQuiz.tsx` | `/teacher/quizzes/demo` | Shows quiz questions teacher can review |
+| `TeacherDemoSubmissions.tsx` | `/teacher/assignments/demo` | Shows student submissions list |
+| `TeacherDemoGradeReview.tsx` | `/teacher/grading/demo` | Shows detailed grade review with approve/reject |
+| `TeacherDemoStudentDetail.tsx` | `/teacher/students/demo` | Shows student profile with grades |
+
+Each demo page will have:
+- A clear "DEMO MODE" banner at the top
+- Back button to return to the parent page
+- Static but realistic data
+
+---
+
+## Demo Badge Component
+
+A small reusable badge to indicate demo-active buttons:
+
 ```tsx
-// Import Select components
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// Add state
-const [courses, setCourses] = useState<Course[]>([]);
-const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-
-// Add Course Selection Card at top
-<Card className="border-0 shadow-sm mb-6">
-  <CardContent className="p-4">
-    <label>Select Course</label>
-    <Select value={selectedCourseId} onValueChange={setSelectedCourseId}>
-      <SelectTrigger><SelectValue placeholder="Select a course" /></SelectTrigger>
-      <SelectContent>
-        <SelectItem value="ccna1">Network 1</SelectItem>
-        <SelectItem value="ccna2">Network 2</SelectItem>
-        <SelectItem value="ccna3">Network 3</SelectItem>
-        <SelectItem value="ccna4">Network 4</SelectItem>
-      </SelectContent>
-    </Select>
-  </CardContent>
-</Card>
+<Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
 ```
-
-### 3.3 Add "Generate with AI" Buttons
-**Files:**
-- `src/pages/teacher/TeacherLessons.tsx` - Add "Generate Lesson with AI" button
-- `src/pages/teacher/TeacherAssignments.tsx` - Add "Generate Assignment with AI" button
-- `src/pages/teacher/TeacherQuizzes.tsx` - Already has AI generator, verify it works
-
-### 3.4 Add AI Voice Interaction for Teachers
-**Files:** Create `src/pages/teacher/TeacherChat.tsx`
-- New page for teacher-AI interaction
-- Add to sidebar menu in `AppSidebar.tsx`
-- Use same voice hook as StudentChat
-- Focus on getting AI feedback about lessons, assignments, quizzes
-
----
-
-## Section 4: Student Mode Improvements
-
-### 4.1 Remove Level Buttons, Use Chat/Voice Selection
-**Files:** `src/pages/student/StudentChat.tsx`, `supabase/functions/ai-chat/index.ts`
-
-Current behavior:
-```text
-[Level 1 Button] [Level 2 Button] [Level 3 Button] [Level 4 Button]
-```
-
-New behavior:
-- Remove the 4 visual level cards
-- Allow students to select via:
-  1. Text: "I want to study Network 2"
-  2. Voice: "Let me work on Network 1"
-- If no course selected, AI answers generally across all materials
-- If course selected, AI focuses on that course's materials
-
-Update AI prompt logic:
-```typescript
-// If no course selected
-"You are an AI tutor for CCNA 200-301. The student hasn't selected a specific course. 
-Answer questions generally, and if you detect they're asking about a specific level's topic, 
-ask: 'Would you like me to focus on Network 1/2/3/4 for more targeted help?'"
-
-// If course selected via chat
-"You are focused on Network ${level}. Answer questions based on this level's materials."
-```
-
-### 4.2 Add Course Selection Dropdown to Student Pages
-**Files:**
-- `src/pages/student/StudentLessons.tsx`
-- `src/pages/student/StudentQuizzes.tsx`
-- `src/pages/student/StudentGrades.tsx`
-
-Add same dropdown pattern as teacher pages with course filtering.
-
-### 4.3 Improve Grades Page with Course Breakdown
-**Files:** `src/pages/student/StudentGrades.tsx`
-- Add course selector tabs/dropdown
-- Show grades organized by course
-- Display breakdown: Assignments, Quizzes, Final for each course
-
----
-
-## Section 5: Missing Features (Recommended)
-
-### 5.1 AI Explanation Modes
-**Files:** `src/pages/student/StudentChat.tsx`, `supabase/functions/ai-chat/index.ts`
-
-Add toggle for explanation modes:
-- Simple: Easy-to-understand explanations
-- Exam-focused: Concise, exam-relevant answers
-- Advanced: Deep technical explanations
-
-UI: Toggle buttons or dropdown above the chat input
-
-### 5.2 Error Handling Improvements
-**Files:** Multiple pages
-- Show clear error when no course is selected
-- Show warning when no materials uploaded for a course
 
 ---
 
 ## Files Summary
 
-| File | Changes |
-|------|---------|
-| `package.json` | Add `qrcode.react` dependency |
-| `src/pages/Login.tsx` | Add QR code component |
-| `src/components/layout/GuestLayout.tsx` | Change "Log In" → "Home", add QR |
-| `src/pages/guest/GuestChat.tsx` | Add voice support with useVoiceChat hook |
-| `src/pages/teacher/TeacherContent.tsx` | Rename CCNA → Network, update labels |
-| `src/pages/teacher/TeacherLessons.tsx` | Add course dropdown + AI generate button |
-| `src/pages/teacher/TeacherAssignments.tsx` | Add course dropdown + AI generate button |
-| `src/pages/teacher/TeacherQuizzes.tsx` | Add course dropdown (AI button exists) |
-| `src/pages/teacher/TeacherGrading.tsx` | Add course dropdown filter |
-| `src/pages/teacher/TeacherStudents.tsx` | Add course dropdown filter |
-| `src/pages/teacher/TeacherChat.tsx` | NEW - AI chat for teachers |
-| `src/components/layout/AppSidebar.tsx` | Add "AI Assistant" menu item for teachers |
-| `src/pages/student/StudentChat.tsx` | Remove level cards, add chat-based selection |
-| `src/pages/student/StudentLessons.tsx` | Add course dropdown |
-| `src/pages/student/StudentQuizzes.tsx` | Add course dropdown |
-| `src/pages/student/StudentGrades.tsx` | Add course breakdown view |
-| `supabase/functions/ai-chat/index.ts` | Update for flexible course selection |
-
----
-
-## Implementation Phases
-
-**Phase 1: Core UI Changes**
-1. Add QR code to Login and Guest pages
-2. Rename labels (Log In → Home, CCNA → Network)
-3. Add course dropdowns to all teacher/student pages
-
-**Phase 2: Voice & AI Improvements**
-4. Add voice support to Guest Chat
-5. Create Teacher AI Chat page
-6. Update Student Chat to remove level cards
-7. Update AI edge function for flexible course selection
-
-**Phase 3: AI Generation Features**
-8. Add AI lesson generation for teachers
-9. Add AI assignment generation for teachers
-10. Add AI explanation modes for students
-
----
+| File | Action | Changes |
+|------|--------|---------|
+| `src/pages/guest/ContactInfo.tsx` | Modify | Phone, remove fax, update apply link |
+| `src/pages/guest/ProgramsInfo.tsx` | Modify | Reorder colleges, update programs |
+| `src/pages/guest/CollegesInfo.tsx` | Modify | Reorder, rename, update programs |
+| `src/pages/student/StudentDashboard.tsx` | Modify | Link Start button to demo assignment |
+| `src/pages/student/StudentLessons.tsx` | Modify | Link first lesson to demo |
+| `src/pages/student/StudentQuizzes.tsx` | Modify | Link Start Quiz to demo |
+| `src/pages/teacher/TeacherDashboard.tsx` | Modify | Link stats, change Approve to Review |
+| `src/pages/teacher/TeacherLessons.tsx` | Modify | Link View to demo |
+| `src/pages/teacher/TeacherAssignments.tsx` | Modify | Link View Submissions to demo |
+| `src/pages/teacher/TeacherQuizzes.tsx` | Modify | Link View to demo |
+| `src/pages/teacher/TeacherGrading.tsx` | Modify | Link Review to demo |
+| `src/pages/teacher/TeacherStudents.tsx` | Modify | Link View Details/Grades to demo |
+| `src/pages/student/DemoLesson.tsx` | Create | Demo lesson page |
+| `src/pages/student/DemoQuiz.tsx` | Create | Demo quiz page |
+| `src/pages/student/DemoAssignment.tsx` | Create | Demo assignment page |
+| `src/pages/teacher/TeacherDemoLesson.tsx` | Create | Teacher demo lesson view |
+| `src/pages/teacher/TeacherDemoQuiz.tsx` | Create | Teacher demo quiz view |
+| `src/pages/teacher/TeacherDemoSubmissions.tsx` | Create | Teacher demo submissions view |
+| `src/pages/teacher/TeacherDemoGradeReview.tsx` | Create | Teacher demo grade review |
+| `src/pages/teacher/TeacherDemoStudentDetail.tsx` | Create | Teacher demo student detail |
+| `src/App.tsx` | Modify | Add 8 new demo routes |
 
 ## Technical Notes
 
-### Course Naming Convention
-- Database: Keep codes as CCNA1, CCNA2, CCNA3, CCNA4
-- UI Display: Show as Network 1, Network 2, Network 3, Network 4
+### Course Selector Blank Issue
+The courses exist in the database (CCNA1-4, all active). The `useCourses` hook auto-selects the first course. The blank issue may be a timing/rendering issue. The fix is to ensure the component renders the selected value correctly after async fetch completes. Will verify and fix the `CourseSelector` component if needed.
 
-### QR Code Implementation
-```tsx
-import { QRCodeSVG } from 'qrcode.react';
-
-<QRCodeSVG 
-  value="https://ai-teacher-2026.lovable.app" 
-  size={120}
-  className="mx-auto"
-/>
-```
-
-### Shared Course Selector Component
-Consider creating a reusable component:
-```tsx
-// src/components/CourseSelector.tsx
-export function CourseSelector({ 
-  value, 
-  onChange,
-  label = "Select Course" 
-}: CourseSelectorProps) {
-  // Shared implementation
-}
-```
-
-This will reduce code duplication across 8+ pages.
+### Demo Pages Pattern
+All demo pages follow a consistent pattern:
+1. Yellow/amber "DEMO MODE" banner at top
+2. Back button linking to parent page
+3. Static CCNA-related content
+4. Interactive elements (buttons, forms) that show toast feedback
+5. No database interaction required
