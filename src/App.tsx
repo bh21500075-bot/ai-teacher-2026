@@ -15,12 +15,20 @@ import TeacherQuizzes from "./pages/teacher/TeacherQuizzes";
 import TeacherGrading from "./pages/teacher/TeacherGrading";
 import TeacherStudents from "./pages/teacher/TeacherStudents";
 import TeacherChat from "./pages/teacher/TeacherChat";
+import TeacherDemoLesson from "./pages/teacher/TeacherDemoLesson";
+import TeacherDemoQuiz from "./pages/teacher/TeacherDemoQuiz";
+import TeacherDemoSubmissions from "./pages/teacher/TeacherDemoSubmissions";
+import TeacherDemoGradeReview from "./pages/teacher/TeacherDemoGradeReview";
+import TeacherDemoStudentDetail from "./pages/teacher/TeacherDemoStudentDetail";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentLessons from "./pages/student/StudentLessons";
 import StudentAssignments from "./pages/student/StudentAssignments";
 import StudentQuizzes from "./pages/student/StudentQuizzes";
 import StudentGrades from "./pages/student/StudentGrades";
 import StudentChat from "./pages/student/StudentChat";
+import DemoLesson from "./pages/student/DemoLesson";
+import DemoQuiz from "./pages/student/DemoQuiz";
+import DemoAssignment from "./pages/student/DemoAssignment";
 import GuestChat from "./pages/guest/GuestChat";
 import NotFound from "./pages/NotFound";
 
@@ -84,16 +92,24 @@ function AppRoutes() {
       <Route path="/teacher/chat" element={<ProtectedRoute role="teacher"><TeacherChat /></ProtectedRoute>} />
       <Route path="/teacher/content" element={<ProtectedRoute role="teacher"><TeacherContent /></ProtectedRoute>} />
       <Route path="/teacher/lessons" element={<ProtectedRoute role="teacher"><TeacherLessons /></ProtectedRoute>} />
+      <Route path="/teacher/lessons/demo" element={<ProtectedRoute role="teacher"><TeacherDemoLesson /></ProtectedRoute>} />
       <Route path="/teacher/assignments" element={<ProtectedRoute role="teacher"><TeacherAssignments /></ProtectedRoute>} />
+      <Route path="/teacher/assignments/demo" element={<ProtectedRoute role="teacher"><TeacherDemoSubmissions /></ProtectedRoute>} />
       <Route path="/teacher/quizzes" element={<ProtectedRoute role="teacher"><TeacherQuizzes /></ProtectedRoute>} />
+      <Route path="/teacher/quizzes/demo" element={<ProtectedRoute role="teacher"><TeacherDemoQuiz /></ProtectedRoute>} />
       <Route path="/teacher/grading" element={<ProtectedRoute role="teacher"><TeacherGrading /></ProtectedRoute>} />
+      <Route path="/teacher/grading/demo" element={<ProtectedRoute role="teacher"><TeacherDemoGradeReview /></ProtectedRoute>} />
       <Route path="/teacher/students" element={<ProtectedRoute role="teacher"><TeacherStudents /></ProtectedRoute>} />
+      <Route path="/teacher/students/demo" element={<ProtectedRoute role="teacher"><TeacherDemoStudentDetail /></ProtectedRoute>} />
       
       {/* Student Routes */}
       <Route path="/student" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
       <Route path="/student/lessons" element={<ProtectedRoute role="student"><StudentLessons /></ProtectedRoute>} />
+      <Route path="/student/lessons/demo" element={<ProtectedRoute role="student"><DemoLesson /></ProtectedRoute>} />
       <Route path="/student/assignments" element={<ProtectedRoute role="student"><StudentAssignments /></ProtectedRoute>} />
+      <Route path="/student/assignments/demo" element={<ProtectedRoute role="student"><DemoAssignment /></ProtectedRoute>} />
       <Route path="/student/quizzes" element={<ProtectedRoute role="student"><StudentQuizzes /></ProtectedRoute>} />
+      <Route path="/student/quizzes/demo" element={<ProtectedRoute role="student"><DemoQuiz /></ProtectedRoute>} />
       <Route path="/student/grades" element={<ProtectedRoute role="student"><StudentGrades /></ProtectedRoute>} />
       <Route path="/student/chat" element={<ProtectedRoute role="student"><StudentChat /></ProtectedRoute>} />
       

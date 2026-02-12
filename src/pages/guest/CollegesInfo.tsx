@@ -1,29 +1,40 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { GraduationCap, Cpu, Briefcase, Cog } from 'lucide-react';
+import { GraduationCap, Cog, Cpu, Briefcase } from 'lucide-react';
 
 const colleges = [
+  {
+    name: 'College of Engineering',
+    icon: Cog,
+    description: 'Developing future engineers with strong theoretical foundations and practical skills in informatics, mechatronics, and environmental engineering.',
+    programs: [
+      'BSInfE - Informatics Engineering',
+      'BSMecE - Mechatronics Engineering',
+      'BSEnvE - Environmental Engineering',
+    ],
+    accreditation: 'ABET Accredited',
+    color: 'bg-orange-500'
+  },
   {
     name: 'College of Computer Studies',
     icon: Cpu,
     description: 'Preparing students for careers in computing, information technology, and software development through hands-on learning and industry-aligned curriculum.',
-    programs: ['BSCS - Computer Science', 'BSIT - Information Technology'],
+    programs: ['BSIT - Information Technology', 'BSCS - Computer Science'],
     accreditation: 'ABET Accredited',
     color: 'bg-blue-500'
-  },
-  {
-    name: 'College of Engineering & Technology',
-    icon: Cog,
-    description: 'Developing future engineers with strong theoretical foundations and practical skills in industrial, mechanical, and energy engineering.',
-    programs: ['BSIE - Industrial Engineering', 'BSME - Mechanical Engineering', 'BSEnE - Energy Engineering'],
-    accreditation: 'ABET Accredited',
-    color: 'bg-orange-500'
   },
   {
     name: 'College of Administrative & Financial Sciences',
     icon: Briefcase,
     description: 'Equipping students with business acumen, leadership skills, and financial expertise for success in the global marketplace.',
-    programs: ['BSBI - Business Informatics', 'BSIB - International Business', 'BSAF - Accounting & Finance', 'MBA - Master of Business Administration'],
+    programs: [
+      'BSAF - Accounting & Finance',
+      'BSIB - International Business',
+      'BSBI - Business Informatics',
+      'MBA - Master of Business Administration',
+      'MSDM - MSc in Digital Marketing',
+      'MSLSCM - MSc in Logistics and Supply Chain Management',
+    ],
     accreditation: 'ECBE Accredited',
     color: 'bg-green-500'
   }

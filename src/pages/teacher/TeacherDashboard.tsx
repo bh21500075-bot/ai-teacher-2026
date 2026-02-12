@@ -1,6 +1,8 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 import { 
   Users, 
   FileText, 
@@ -44,21 +46,27 @@ const TeacherDashboard = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {stats.map((stat, index) => (
-            <Card key={index} className="border-0 shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-muted-foreground">{stat.title}</p>
-                    <p className="text-3xl font-bold mt-1">{stat.value}</p>
+          {stats.map((stat, index) => {
+            const content = (
+              <Card key={index} className={`border-0 shadow-sm ${stat.title === 'Total Students' ? 'cursor-pointer hover:shadow-md transition-shadow' : ''}`}>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">{stat.title}</p>
+                      <p className="text-3xl font-bold mt-1">{stat.value}</p>
+                    </div>
+                    <div className={`w-12 h-12 rounded-xl bg-muted flex items-center justify-center ${stat.color}`}>
+                      <stat.icon className="w-6 h-6" />
+                    </div>
                   </div>
-                  <div className={`w-12 h-12 rounded-xl bg-muted flex items-center justify-center ${stat.color}`}>
-                    <stat.icon className="w-6 h-6" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+            if (stat.title === 'Total Students') {
+              return <Link key={index} to="/teacher/students">{content}</Link>;
+            }
+            return <div key={index}>{content}</div>;
+          })}
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6">
@@ -96,9 +104,18 @@ const TeacherDashboard = () => {
                       <p className="text-xs text-muted-foreground">AI Grade</p>
                       <p className="text-lg font-bold text-primary">{item.aiGrade}%</p>
                     </div>
-                    <Button size="sm" className="h-9">
-                      Approve
-                    </Button>
+                    {index === 0 ? (
+                      <Link to="/teacher/grading/demo">
+                        <Button size="sm" className="h-9">
+                          Review
+                          <Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button size="sm" className="h-9">
+                        Review
+                      </Button>
+                    )}
                   </div>
                 </div>
               ))}

@@ -1,6 +1,7 @@
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
   BookOpen, 
@@ -128,9 +129,18 @@ const StudentDashboard = () => {
                       </p>
                     </div>
                   </div>
-                  <Button size="sm" variant={task.urgent ? 'default' : 'outline'}>
-                    Start
-                  </Button>
+                  {index === 0 ? (
+                    <Link to="/student/assignments/demo">
+                      <Button size="sm" variant={task.urgent ? 'default' : 'outline'}>
+                        Start
+                        <Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Button size="sm" variant={task.urgent ? 'default' : 'outline'}>
+                      Start
+                    </Button>
+                  )}
                 </div>
               ))}
             </CardContent>

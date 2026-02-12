@@ -14,6 +14,7 @@ import {
   Award
 } from 'lucide-react';
 import { CourseSelector, useCourses } from '@/components/CourseSelector';
+import { Link } from 'react-router-dom';
 
 const TeacherStudents = () => {
   const { courses, selectedCourseId, setSelectedCourseId, selectedCourse, COURSE_DISPLAY_NAMES } = useCourses();
@@ -204,14 +205,35 @@ const TeacherStudents = () => {
                       </div>
 
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <Eye className="w-4 h-4 mr-1" />
-                          View Details
-                        </Button>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <Award className="w-4 h-4 mr-1" />
-                          Grades
-                        </Button>
+                        {student.id === 'S001' ? (
+                          <>
+                            <Link to="/teacher/students/demo" className="flex-1">
+                              <Button variant="outline" size="sm" className="w-full">
+                                <Eye className="w-4 h-4 mr-1" />
+                                View Details
+                                <Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
+                              </Button>
+                            </Link>
+                            <Link to="/teacher/students/demo" className="flex-1">
+                              <Button variant="outline" size="sm" className="w-full">
+                                <Award className="w-4 h-4 mr-1" />
+                                Grades
+                                <Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
+                              </Button>
+                            </Link>
+                          </>
+                        ) : (
+                          <>
+                            <Button variant="outline" size="sm" className="flex-1">
+                              <Eye className="w-4 h-4 mr-1" />
+                              View Details
+                            </Button>
+                            <Button variant="outline" size="sm" className="flex-1">
+                              <Award className="w-4 h-4 mr-1" />
+                              Grades
+                            </Button>
+                          </>
+                        )}
                         <Button variant="outline" size="sm">
                           <MessageSquare className="w-4 h-4" />
                         </Button>

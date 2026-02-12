@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { BookOpen, Play, Eye, Edit, Calendar, Plus, Sparkles } from 'lucide-react';
 import { CourseSelector, useCourses } from '@/components/CourseSelector';
+import { Link } from 'react-router-dom';
 
 const TeacherLessons = () => {
   const { courses, selectedCourseId, setSelectedCourseId, selectedCourse, isLoading, COURSE_DISPLAY_NAMES } = useCourses();
@@ -120,10 +121,20 @@ const TeacherLessons = () => {
                   <div className="flex gap-2">
                     {week.status !== 'empty' ? (
                       <>
-                        <Button variant="outline" size="sm" className="flex-1">
-                          <Eye className="w-4 h-4 mr-1" />
-                          View
-                        </Button>
+                        {week.week === 1 ? (
+                          <Link to="/teacher/lessons/demo" className="flex-1">
+                            <Button variant="outline" size="sm" className="w-full">
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                              <Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Button variant="outline" size="sm" className="flex-1">
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </Button>
+                        )}
                         <Button variant="outline" size="sm" className="flex-1">
                           <Edit className="w-4 h-4 mr-1" />
                           Edit

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ClipboardList, Plus, Eye, Edit, Users, Calendar, Clock, Sparkles } from 'lucide-react';
 import { CourseSelector, useCourses } from '@/components/CourseSelector';
+import { Link } from 'react-router-dom';
 
 const TeacherAssignments = () => {
   const { courses, selectedCourseId, setSelectedCourseId, selectedCourse, COURSE_DISPLAY_NAMES } = useCourses();
@@ -156,10 +157,20 @@ const TeacherAssignments = () => {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Eye className="w-4 h-4 mr-1" />
-                        View Submissions
-                      </Button>
+                      {assignment.id === 1 ? (
+                        <Link to="/teacher/assignments/demo">
+                          <Button variant="outline" size="sm">
+                            <Eye className="w-4 h-4 mr-1" />
+                            View Submissions
+                            <Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button variant="outline" size="sm">
+                          <Eye className="w-4 h-4 mr-1" />
+                          View Submissions
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm">
                         <Edit className="w-4 h-4 mr-1" />
                         Edit
