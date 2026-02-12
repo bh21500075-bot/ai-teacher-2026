@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, Clock, Play, HelpCircle, Trophy } from 'lucide-react';
 import { CourseSelector, useCourses } from '@/components/CourseSelector';
+import { Link } from 'react-router-dom';
 
 const StudentQuizzes = () => {
   const { courses, selectedCourseId, setSelectedCourseId, selectedCourse, COURSE_DISPLAY_NAMES } = useCourses();
@@ -147,19 +148,29 @@ const StudentQuizzes = () => {
                       </div>
                     )}
                     
-                    <Button 
-                      className="w-full" 
-                      variant={quiz.status === 'completed' ? 'outline' : 'default'}
-                    >
-                      {quiz.status === 'completed' ? (
-                        <>View Results</>
-                      ) : (
-                        <>
+                    {quiz.status === 'available' && quiz.id === 3 ? (
+                      <Link to="/student/quizzes/demo" className="w-full">
+                        <Button className="w-full">
                           <Play className="w-4 h-4 mr-1" />
                           Start Quiz
-                        </>
-                      )}
-                    </Button>
+                          <Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
+                        </Button>
+                      </Link>
+                    ) : (
+                      <Button 
+                        className="w-full" 
+                        variant={quiz.status === 'completed' ? 'outline' : 'default'}
+                      >
+                        {quiz.status === 'completed' ? (
+                          <>View Results</>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4 mr-1" />
+                            Start Quiz
+                          </>
+                        )}
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
               ))}

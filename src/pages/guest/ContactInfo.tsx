@@ -39,8 +39,7 @@ export function ContactInfo() {
                 <Phone className="w-5 h-5 text-muted-foreground mt-0.5" />
                 <div>
                   <p className="font-medium">Phone</p>
-                  <p className="text-sm text-muted-foreground">+973 1700 5577</p>
-                  <p className="text-sm text-muted-foreground">Fax: +973 1702 2233</p>
+                  <p className="text-sm text-muted-foreground">80001800</p>
                 </div>
               </div>
             </div>
@@ -127,7 +126,7 @@ export function ContactInfo() {
             Start your application today and become part of our growing community.
           </p>
           <Button asChild>
-            <a href="https://www.utb.edu.bh/admissions" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.utb.edu.bh/undergraduate-students/" target="_blank" rel="noopener noreferrer">
               Apply Now
             </a>
           </Button>

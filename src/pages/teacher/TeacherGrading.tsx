@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { CourseSelector, useCourses } from '@/components/CourseSelector';
+import { Link } from 'react-router-dom';
 
 const TeacherGrading = () => {
   const { courses, selectedCourseId, setSelectedCourseId, selectedCourse, COURSE_DISPLAY_NAMES } = useCourses();
@@ -198,10 +199,20 @@ const TeacherGrading = () => {
                         <CheckCircle className="w-4 h-4" />
                         Approve
                       </Button>
-                      <Button variant="outline" size="sm" className="flex-1 gap-2">
-                        <Eye className="w-4 h-4" />
-                        Review Submission
-                      </Button>
+                      {grade.id === 1 ? (
+                        <Link to="/teacher/grading/demo" className="flex-1">
+                          <Button variant="outline" size="sm" className="w-full gap-2">
+                            <Eye className="w-4 h-4" />
+                            Review Submission
+                            <Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button variant="outline" size="sm" className="flex-1 gap-2">
+                          <Eye className="w-4 h-4" />
+                          Review Submission
+                        </Button>
+                      )}
                       <Button variant="outline" size="sm" className="text-destructive hover:text-destructive gap-2">
                         <XCircle className="w-4 h-4" />
                         Reject

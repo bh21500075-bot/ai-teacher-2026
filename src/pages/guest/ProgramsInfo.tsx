@@ -4,18 +4,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { GraduationCap, Award } from 'lucide-react';
 
 const bachelorPrograms = [
-  { name: 'Computer Science', abbr: 'BSCS', college: 'Computer Studies', credits: 132, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Informatics Engineering', abbr: 'BSInfE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Mechatronics Engineering', abbr: 'BSMecE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Environmental Engineering', abbr: 'BSEnvE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
   { name: 'Information Technology', abbr: 'BSIT', college: 'Computer Studies', credits: 132, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Industrial Engineering', abbr: 'BSIE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Mechanical Engineering', abbr: 'BSME', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Energy Engineering', abbr: 'BSEnE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Business Informatics', abbr: 'BSBI', college: 'Business', credits: 126, duration: '4 years', accreditation: 'ECBE' },
-  { name: 'International Business', abbr: 'BSIB', college: 'Business', credits: 126, duration: '4 years', accreditation: 'ECBE' },
+  { name: 'Computer Science', abbr: 'BSCS', college: 'Computer Studies', credits: 132, duration: '4 years', accreditation: 'ABET' },
   { name: 'Accounting & Finance', abbr: 'BSAF', college: 'Business', credits: 126, duration: '4 years', accreditation: 'ECBE' },
+  { name: 'International Business', abbr: 'BSIB', college: 'Business', credits: 126, duration: '4 years', accreditation: 'ECBE' },
+  { name: 'Business Informatics', abbr: 'BSBI', college: 'Business', credits: 126, duration: '4 years', accreditation: 'ECBE' },
 ];
 
 const masterPrograms = [
   { name: 'Master of Business Administration', abbr: 'MBA', college: 'Business', credits: 36, duration: '2 years', accreditation: 'ECBE' },
+  { name: 'MSc in Digital Marketing', abbr: 'MSDM', college: 'Business', credits: 36, duration: '2 years', accreditation: 'ECBE' },
+  { name: 'MSc in Logistics and Supply Chain Management', abbr: 'MSLSCM', college: 'Business', credits: 36, duration: '2 years', accreditation: 'ECBE' },
 ];
 
 export function ProgramsInfo() {

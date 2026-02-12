@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { BookOpen, Play, CheckCircle, Lock, Clock } from 'lucide-react';
 import { CourseSelector, useCourses } from '@/components/CourseSelector';
+import { Link } from 'react-router-dom';
 
 const StudentLessons = () => {
   const { courses, selectedCourseId, setSelectedCourseId, selectedCourse, COURSE_DISPLAY_NAMES } = useCourses();
@@ -173,6 +174,14 @@ const StudentLessons = () => {
                             <Lock className="w-4 h-4 mr-1" />
                             Locked
                           </Button>
+                        ) : week.week === 1 ? (
+                          <Link to="/student/lessons/demo">
+                            <Button variant={week.status === 'completed' ? 'outline' : 'default'}>
+                              <Play className="w-4 h-4 mr-1" />
+                              {week.status === 'completed' ? 'Review' : week.status === 'in_progress' ? 'Continue' : 'Start'}
+                              <Badge className="bg-amber-500 text-white text-[10px] ml-1">DEMO</Badge>
+                            </Button>
+                          </Link>
                         ) : week.status === 'completed' ? (
                           <Button variant="outline">
                             <Play className="w-4 h-4 mr-1" />
