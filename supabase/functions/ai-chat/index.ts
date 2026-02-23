@@ -309,104 +309,62 @@ IMPORTANT RULES:
 - Never provide direct answers to exams or graded assignments.
 - Use the course materials as the primary source of truth.`;
 
-    // Try Lovable AI first, then fallback to Gemini
+    // Use Gemini API directly (most reliable)
     let aiResponse: string;
-    
-    try {
-      // Use OpenAI-compatible format for Lovable AI
-      const openAIMessages = [
-        { role: "system", content: systemInstruction },
-        ...messages.map(msg => ({
-          role: msg.role === "assistant" ? "assistant" : "user",
-          content: msg.content
-        }))
-      ];
 
-      console.log('Calling Lovable AI...');
-      const response = await fetchWithRetry(
-        `${LOVABLE_AI_URL}/chat/completions`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(LOVABLE_API_KEY ? { "Authorization": `Bearer ${LOVABLE_API_KEY}` } : {})
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: openAIMessages,
-            temperature: 0.7,
-            max_tokens: 2048,
-          }),
-        },
-        3,
-        2000
+    if (!GEMINI_API_KEY) {
+      return new Response(
+        JSON.stringify({ error: "AI service not configured. Please add a Gemini API key." }),
+        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Lovable AI error:", response.status, errorText);
-        throw new Error(`Lovable AI error: ${response.status}`);
-      }
+    // Convert messages to Gemini format
+    const geminiMessages: Message[] = messages.map((msg) => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    }));
 
-      const data = await response.json();
-      aiResponse = data.choices?.[0]?.message?.content || 
-        "I apologize, but I couldn't generate a response. Please try again.";
+    console.log('Calling Gemini API...');
+    const response = await fetchWithRetry(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: geminiMessages,
+          systemInstruction: {
+            parts: [{ text: systemInstruction }],
+          },
+          generationConfig: {
+            temperature: 0.7,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: 2048,
+          },
+        }),
+      },
+      3,
+      2000
+    );
 
-    } catch (lovableError) {
-      console.log('Lovable AI failed, trying Gemini fallback...', lovableError);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Gemini API error:", response.status, errorText);
       
-      if (!GEMINI_API_KEY) {
+      if (response.status === 429) {
         return new Response(
-          JSON.stringify({ error: "AI service temporarily unavailable. Please try again in a moment." }),
-          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
+      
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
 
-      // Convert messages to Gemini format
-      const geminiMessages: Message[] = messages.map((msg) => ({
-        role: msg.role === "assistant" ? "model" : "user",
-        parts: [{ text: msg.content }],
-      }));
-
-      // Call Gemini API with retry
-      const response = await fetchWithRetry(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            contents: geminiMessages,
-            systemInstruction: {
-              parts: [{ text: systemInstruction }],
-            },
-            generationConfig: {
-              temperature: 0.7,
-              topK: 40,
-              topP: 0.95,
-              maxOutputTokens: 2048,
-            },
-          }),
-        },
-        3,
-        2000
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Gemini API error:", response.status, errorText);
-        
-        if (response.status === 429) {
-          return new Response(
-            JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-          );
-        }
-        
-        throw new Error(`Gemini API error: ${response.status}`);
-      }
-
+    {
       const data = await response.json();
       aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 
         "I apologize, but I couldn't generate a response. Please try again.";
