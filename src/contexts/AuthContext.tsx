@@ -35,21 +35,31 @@ const guestUser: User = {
 };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('auth_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const login = (id: string) => {
     const foundUser = mockUsers[id.toUpperCase()];
     if (foundUser) {
       setUser(foundUser);
+      localStorage.setItem('auth_user', JSON.stringify(foundUser));
     }
   };
 
   const loginAsGuest = () => {
     setUser(guestUser);
+    localStorage.setItem('auth_user', JSON.stringify(guestUser));
   };
 
   const logout = () => {
     setUser(null);
+    localStorage.removeItem('auth_user');
   };
 
   return (
