@@ -1,38 +1,38 @@
 
 
-# Plan: Switch All AI Functions to Use Your Gemini API Key
+# Plan: Add Markdown Rendering to All Chat Pages
 
-## Overview
-Replace the Lovable AI Gateway usage in `guest-chat` with direct Gemini API calls using your existing `GEMINI_API_KEY`, matching the pattern already used in `ai-chat`.
+## Problem
+All three chat pages (Student, Teacher, Guest) display AI responses as plain text using `whitespace-pre-wrap`. This means markdown formatting like **bold**, bullet points, headers, and code blocks appear as raw characters instead of being properly formatted.
+
+## Solution
+Install `react-markdown` and create a shared `ChatMessage` component that renders AI responses with proper markdown formatting and styling.
 
 ## Changes
 
-### File: `supabase/functions/guest-chat/index.ts`
-- Replace `LOVABLE_API_KEY` with `GEMINI_API_KEY`
-- Switch endpoint from `https://ai.gateway.lovable.dev/v1/chat/completions` to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`
-- Convert message format from OpenAI-style (`role: system/user/assistant`) to Gemini format (`role: user/model` with `systemInstruction`)
-- Add the `fetchWithRetry` helper (same as in `ai-chat`) for rate limit resilience
-- Update response parsing from `data.choices[0].message.content` to `data.candidates[0].content.parts[0].text`
+### 1. Install dependency
+- Add `react-markdown` package
 
-### File: `supabase/functions/ai-chat/index.ts`
-- No changes needed -- already uses Gemini API directly with `GEMINI_API_KEY`
+### 2. Create shared component: `src/components/ChatMessageContent.tsx`
+- A reusable component that takes a message string and renders it with `ReactMarkdown`
+- Apply `prose` styling for clean typography (headings, lists, bold, code blocks, etc.)
+- Style code blocks with a dark background and proper font
+- Keep user messages as plain text (no markdown needed)
+
+### 3. Update three files to use the new component
+Replace the plain `<p>` tag in each file:
+
+- **`src/pages/student/StudentChat.tsx`** (line 333): Replace `<p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>` with `<ChatMessageContent content={msg.content} role={msg.role} />`
+- **`src/pages/teacher/TeacherChat.tsx`** (line 238): Same replacement
+- **`src/pages/guest/GuestChat.tsx`** (line 212): Same replacement
 
 ## Technical Details
 
-The key conversion in `guest-chat` will be:
-
-```text
-Before (Lovable AI Gateway - OpenAI format):
-  POST https://ai.gateway.lovable.dev/v1/chat/completions
-  Headers: Authorization: Bearer LOVABLE_API_KEY
-  Body: { model, messages: [{role, content}], temperature, max_tokens }
-  Response: data.choices[0].message.content
-
-After (Gemini API direct):
-  POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=GEMINI_API_KEY
-  Body: { contents: [{role, parts}], systemInstruction, generationConfig }
-  Response: data.candidates[0].content.parts[0].text
-```
-
-Both functions will then consistently use the same Gemini API pattern with your own API key.
+The `ChatMessageContent` component will:
+- Use `react-markdown` to parse and render markdown
+- Apply Tailwind `prose` classes for consistent typography
+- Style inline code with a subtle background
+- Style code blocks with dark background, rounded corners, and horizontal scroll
+- Render bullet points, numbered lists, bold, italic, and headers properly
+- Keep user messages as simple text without markdown processing
 
