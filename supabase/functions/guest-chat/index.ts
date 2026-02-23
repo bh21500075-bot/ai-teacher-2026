@@ -256,9 +256,9 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('LOVABLE_API_KEY');
+    const apiKey = Deno.env.get('GEMINI_API_KEY');
     if (!apiKey) {
-      throw new Error('LOVABLE_API_KEY not configured');
+      throw new Error('GEMINI_API_KEY not configured');
     }
 
     // Get the user's last message for context-aware search
@@ -328,37 +328,47 @@ COMMUNICATION STYLE:
 - Organize responses with bullet points or numbered lists when appropriate
 - For complex topics, break down information into digestible sections`;
 
-    const response = await fetch(
-      'https://ai.gateway.lovable.dev/v1/chat/completions',
+    // Convert messages to Gemini format
+    const geminiMessages = messages.map((msg: { role: string; content: string }) => ({
+      role: msg.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: msg.content }]
+    }));
+
+    const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 3): Promise<Response> => {
+      for (let i = 0; i < maxRetries; i++) {
+        const res = await fetch(url, options);
+        if (res.status === 429) {
+          const wait = Math.pow(2, i) * 1000;
+          console.log(`Rate limited, retrying in ${wait}ms...`);
+          await new Promise(r => setTimeout(r, wait));
+          continue;
+        }
+        return res;
+      }
+      throw new Error('Max retries exceeded');
+    };
+
+    const response = await fetchWithRetry(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
-          messages: [
-            { role: 'system', content: systemPrompt },
-            ...messages.map((msg: { role: string; content: string }) => ({
-              role: msg.role,
-              content: msg.content
-            }))
-          ],
-          temperature: 0.7,
-          max_tokens: 2048,
+          contents: geminiMessages,
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
         }),
       }
     );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI Gateway error:', response.status, errorText);
-      throw new Error(`AI Gateway error: ${response.status}`);
+      console.error('Gemini API error:', response.status, errorText);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content || 
+    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 
       "I apologize, I couldn't generate a response. Please try again.";
 
     return new Response(
