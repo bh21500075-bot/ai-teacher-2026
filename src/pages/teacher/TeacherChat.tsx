@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import ChatMessageContent from '@/components/ChatMessageContent';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -235,7 +236,7 @@ Provide helpful, constructive feedback and suggestions. Be encouraging but also 
                     </Button>
                   </div>
                 )}
-                <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                <ChatMessageContent content={msg.content} isAi={msg.role === 'assistant'} />
               </div>
             </div>
           ))}

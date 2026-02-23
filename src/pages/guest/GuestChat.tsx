@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import ChatMessageContent from '@/components/ChatMessageContent';
 import { GuestLayout, GuestTab } from '@/components/layout/GuestLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -209,7 +210,7 @@ How can I assist you today?`
                       </Button>
                     </div>
                   )}
-                  <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                  <ChatMessageContent content={msg.content} isAi={msg.role === 'assistant'} />
                 </div>
               </div>
             ))}
