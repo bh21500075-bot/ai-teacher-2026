@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { User, AlertCircle, Bot, ArrowRight, Smartphone } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import logo from '@/assets/logo.png';
 
-const APP_URL = 'https://ai-teacher-2026.lovable.app';
+const APP_URL = import.meta.env.VITE_APP_URL || 'https://ai-teacher-2026.lovable.app';
 
 const Login = () => {
   const [userId, setUserId] = useState('');
@@ -25,7 +25,10 @@ const Login = () => {
       return;
     }
 
-    login(userId);
+    const success = login(userId);
+    if (!success) {
+      setError('Invalid User ID. Please try again.');
+    }
   };
 
   const handleGuestLogin = () => {
@@ -34,15 +37,17 @@ const Login = () => {
   };
 
   // Redirect after successful login
-  if (user) {
-    if (user.role === 'teacher') {
-      navigate('/teacher');
-    } else if (user.role === 'student') {
-      navigate('/student/chat');
-    } else if (user.role === 'guest') {
-      navigate('/guest');
+  useEffect(() => {
+    if (user) {
+      if (user.role === 'teacher') {
+        navigate('/teacher');
+      } else if (user.role === 'student') {
+        navigate('/student/chat');
+      } else if (user.role === 'guest') {
+        navigate('/guest');
+      }
     }
-  }
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/30 flex items-center justify-center p-4">

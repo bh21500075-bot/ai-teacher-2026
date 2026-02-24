@@ -111,7 +111,6 @@ Provide helpful, constructive feedback and suggestions. Be encouraging but also 
         speakResponse(data.response);
       }
     } catch (error) {
-      console.error('Chat error:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to get AI response.',
@@ -136,7 +135,6 @@ Provide helpful, constructive feedback and suggestions. Be encouraging but also 
         });
       }
     } catch (error) {
-      console.error('Voice input error:', error);
       toast({
         title: 'Voice Error',
         description: 'Failed to process voice input.',

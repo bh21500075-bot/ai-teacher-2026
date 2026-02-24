@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+const ALLOWED_ORIGINS = ['https://ai-teacher-2026.lovable.app', 'http://localhost:5173', 'http://localhost:8080'];
+
+function getCorsHeaders(origin: string | null) {
+  return {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin || '') ? origin! : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  };
+}
 
 const UTB_BASE_KNOWLEDGE = `
 === UNIVERSITY OF TECHNOLOGY BAHRAIN (UTB) - OFFICIAL INFORMATION ===
@@ -242,6 +246,8 @@ Completion of all programme requirements with satisfactory CGPA.
 `;
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -293,7 +299,7 @@ serve(async (req) => {
           }
         }
       } catch (dbError) {
-        console.log('Database search skipped:', dbError);
+        // Database search skipped
         // Continue without database search
       }
     }
@@ -339,7 +345,7 @@ COMMUNICATION STYLE:
         const res = await fetch(url, options);
         if (res.status === 429) {
           const wait = Math.pow(2, i) * 1000;
-          console.log(`Rate limited, retrying in ${wait}ms...`);
+          // Rate limited, retrying
           await new Promise(r => setTimeout(r, wait));
           continue;
         }
@@ -363,7 +369,7 @@ COMMUNICATION STYLE:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
+      // Gemini API error
       throw new Error(`Gemini API error: ${response.status}`);
     }
 
@@ -377,7 +383,7 @@ COMMUNICATION STYLE:
     );
 
   } catch (error: unknown) {
-    console.error('Guest chat error:', error);
+    // Guest chat error
     const errorMessage = error instanceof Error ? error.message : 'An error occurred';
     return new Response(
       JSON.stringify({ error: errorMessage }),
