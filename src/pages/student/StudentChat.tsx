@@ -80,10 +80,11 @@ const StudentChat = () => {
 You can select a specific course to focus on, or ask general networking questions and I'll help you across all materials.
 
 **Available courses:**
-• **Network 1**: Networking Fundamentals
-• **Network 2**: Routing
-• **Network 3**: Switching
-• **Network 4**: WAN Technologies
+
+- **Network 1**: Networking Fundamentals
+- **Network 2**: Routing
+- **Network 3**: Switching
+- **Network 4**: WAN Technologies
 
 You can also say or type something like "I want to study Network 2" to switch focus.
 
