@@ -61,10 +61,11 @@ const TeacherChat = () => {
         role: 'assistant',
         content: `Hello! I'm your AI Teaching Assistant. I can help you with:
 
-• **Lesson Feedback**: Get suggestions for improving your lesson content
-• **Assignment Review**: Get AI feedback on assignment designs
-• **Quiz Analysis**: Analyze quiz effectiveness and difficulty balance
-• **General Support**: Ask any teaching-related questions
+
+- **Lesson Feedback**: Get suggestions for improving your lesson content
+- **Assignment Review**: Get AI feedback on assignment designs
+- **Quiz Analysis**: Analyze quiz effectiveness and difficulty balance
+- **General Support**: Ask any teaching-related questions
 
 ${selectedCourse ? `Currently viewing: **${COURSE_DISPLAY_NAMES[selectedCourse.code] || selectedCourse.code}**` : 'Select a course to get started.'}
 

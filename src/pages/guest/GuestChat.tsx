@@ -26,10 +26,11 @@ const GuestChat = () => {
       content: `Hello! Welcome to the University of Technology Bahrain (UTB). I'm here to help you learn about our university, colleges, programs, and campus facilities.
 
 Feel free to ask me about:
-• Our colleges and academic programs
-• Admission requirements and procedures
-• Campus facilities and student life
-• Contact information
+
+- Our colleges and academic programs
+- Admission requirements and procedures
+- Campus facilities and student life
+- Contact information
 
 How can I assist you today?`
     }
