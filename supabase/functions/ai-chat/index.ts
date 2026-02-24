@@ -1,10 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ['https://ai-teacher-2026.lovable.app', 'http://localhost:5173', 'http://localhost:8080'];
+
+function getCorsHeaders(origin: string | null) {
+  return {
+    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin || '') ? origin! : ALLOWED_ORIGINS[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+}
 
 interface Message {
   role: "user" | "model";
@@ -49,7 +53,7 @@ async function searchWeb(query: string, apiKey: string): Promise<string> {
 
     const siteQuery = `${query} (${targetSites.map(s => `site:${s}`).join(' OR ')})`;
     
-    console.log('Web search query:', siteQuery);
+    // Web search query prepared
 
     const response = await fetch('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
@@ -68,7 +72,7 @@ async function searchWeb(query: string, apiKey: string): Promise<string> {
     });
 
     if (!response.ok) {
-      console.error('Web search failed:', response.status);
+      // Web search failed
       return '';
     }
 
@@ -92,10 +96,10 @@ async function searchWeb(query: string, apiKey: string): Promise<string> {
       }
     }
 
-    console.log(`Found ${results.length} web results`);
+    // Found web results
     return webContext;
   } catch (error) {
-    console.error('Web search error:', error);
+    // Web search error
     return '';
   }
 }
@@ -120,13 +124,13 @@ async function fetchWithRetry(
       
       // Rate limit - wait and retry
       const delay = baseDelay * Math.pow(2, attempt);
-      console.log(`Rate limited, waiting ${delay}ms before retry ${attempt + 1}/${maxRetries}`);
+      // Rate limited, waiting before retry
       await new Promise(resolve => setTimeout(resolve, delay));
       
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
       const delay = baseDelay * Math.pow(2, attempt);
-      console.log(`Request failed, waiting ${delay}ms before retry ${attempt + 1}/${maxRetries}`);
+      // Request failed, waiting before retry
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
@@ -135,6 +139,8 @@ async function fetchWithRetry(
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -203,7 +209,7 @@ serve(async (req) => {
     const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY');
     
     if (enableWebSearch && firecrawlApiKey && shouldSearchWeb(latestUserMessage)) {
-      console.log('Searching web for practical examples...');
+      // Searching web for practical examples
       webContext = await searchWeb(latestUserMessage, firecrawlApiKey);
     }
 
@@ -325,7 +331,7 @@ IMPORTANT RULES:
       parts: [{ text: msg.content }],
     }));
 
-    console.log('Calling Gemini API...');
+    // Calling Gemini API
     const response = await fetchWithRetry(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
@@ -352,7 +358,7 @@ IMPORTANT RULES:
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Gemini API error:", response.status, errorText);
+      // Gemini API error
       
       if (response.status === 429) {
         return new Response(
@@ -375,7 +381,7 @@ IMPORTANT RULES:
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("AI Chat error:", error);
+    // AI Chat error
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error occurred" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

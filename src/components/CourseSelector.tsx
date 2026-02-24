@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Network, Route, Layers, Globe, BookOpen, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Course {
   id: string;
@@ -46,6 +47,7 @@ export function CourseSelector({
 }: CourseSelectorProps) {
   const [courses, setCourses] = useState<Course[]>(propCourses || []);
   const [isLoading, setIsLoading] = useState(!propCourses);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!propCourses) {
@@ -64,7 +66,11 @@ export function CourseSelector({
         .order('code');
 
       if (error) {
-        console.error('Error fetching courses:', error);
+        toast({
+          title: 'Error',
+          description: 'Could not load courses. Please try again.',
+          variant: 'destructive',
+        });
         return;
       }
 
@@ -76,7 +82,11 @@ export function CourseSelector({
         }
       }
     } catch (error) {
-      console.error('Error:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not load courses. Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -157,7 +167,6 @@ export function useCourses() {
         .order('code');
 
       if (error) {
-        console.error('Error fetching courses:', error);
         return;
       }
 
@@ -168,7 +177,7 @@ export function useCourses() {
         }
       }
     } catch (error) {
-      console.error('Error:', error);
+      // Course loading failed silently in hook context
     } finally {
       setIsLoading(false);
     }

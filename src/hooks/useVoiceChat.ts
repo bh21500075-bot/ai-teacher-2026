@@ -44,7 +44,7 @@ export function useVoiceChat() {
     
     // Close audio context
     if (audioContextRef.current) {
-      audioContextRef.current.close().catch(console.error);
+      audioContextRef.current.close().catch(() => {});
       audioContextRef.current = null;
     }
     
@@ -112,7 +112,7 @@ export function useVoiceChat() {
             silenceStartRef.current = Date.now();
           } else if (Date.now() - silenceStartRef.current >= SILENCE_DURATION) {
             // 2 seconds of silence - auto stop
-            console.log('Auto-stopping due to silence');
+            // Auto-stopping due to silence
             if (onAutoStopRef.current) {
               onAutoStopRef.current();
             }
@@ -131,14 +131,14 @@ export function useVoiceChat() {
 
       // Max 15 second recording
       maxDurationTimeoutRef.current = setTimeout(() => {
-        console.log('Auto-stopping due to max duration');
+        // Auto-stopping due to max duration
         if (onAutoStopRef.current) {
           onAutoStopRef.current();
         }
       }, MAX_RECORDING_DURATION);
 
     } catch (error) {
-      console.error('Error starting recording:', error);
+      // Error starting recording
       cleanupRecording();
       toast({
         title: 'Microphone Error',
@@ -167,7 +167,10 @@ export function useVoiceChat() {
           const reader = new FileReader();
           reader.onloadend = async () => {
             try {
-              const base64Audio = (reader.result as string).split(',')[1];
+              if (!reader.result || typeof reader.result !== 'string') {
+                throw new Error('Failed to read audio data');
+              }
+              const base64Audio = reader.result.split(',')[1];
 
               // Call Google STT function
               const { data, error } = await supabase.functions.invoke('google-stt', {
@@ -179,11 +182,14 @@ export function useVoiceChat() {
 
               resolve(data.transcript || '');
             } catch (error) {
-              console.error('STT Error:', error);
               reject(error);
             } finally {
               setIsProcessing(false);
             }
+          };
+          reader.onerror = () => {
+            setIsProcessing(false);
+            reject(new Error('Failed to read audio file'));
           };
           reader.readAsDataURL(audioBlob);
         } catch (error) {
@@ -247,11 +253,15 @@ export function useVoiceChat() {
       );
       const audioUrl = URL.createObjectURL(audioBlob);
 
-      // Play audio
+      // Play audio - cleanup old audio first
       if (audioRef.current) {
         audioRef.current.pause();
+        const oldSrc = audioRef.current.src;
+        if (oldSrc.startsWith('blob:')) {
+          URL.revokeObjectURL(oldSrc);
+        }
       }
-      
+
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
       
@@ -267,7 +277,7 @@ export function useVoiceChat() {
 
       await audio.play();
     } catch (error) {
-      console.error('TTS Error:', error);
+      // TTS Error
       setIsPlaying(false);
       toast({
         title: 'Voice Error',

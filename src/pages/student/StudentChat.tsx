@@ -179,7 +179,6 @@ What would you like to learn about?`
         speakResponse(data.response);
       }
     } catch (error) {
-      console.error('Chat error:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to get AI response. Please try again.',
@@ -204,7 +203,6 @@ What would you like to learn about?`
         });
       }
     } catch (error) {
-      console.error('Voice input error:', error);
       toast({
         title: 'Voice Error',
         description: 'Failed to process voice input. Please try again.',

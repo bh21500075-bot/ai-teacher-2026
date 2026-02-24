@@ -10,7 +10,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (id: string) => void;
+  login: (id: string) => boolean;
   loginAsGuest: () => void;
   logout: () => void;
   isAuthenticated: boolean;
@@ -44,12 +44,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
-  const login = (id: string) => {
+  const login = (id: string): boolean => {
     const foundUser = mockUsers[id.toUpperCase()];
     if (foundUser) {
       setUser(foundUser);
       localStorage.setItem('auth_user', JSON.stringify(foundUser));
+      return true;
     }
+    return false;
   };
 
   const loginAsGuest = () => {
