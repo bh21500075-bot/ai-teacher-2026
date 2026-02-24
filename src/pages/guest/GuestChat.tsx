@@ -23,7 +23,7 @@ const GuestChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hello! Welcome to the University of Technology Bahrain (UTB). I'm here to help you learn about our university, colleges, programs, and campus facilities.
+      content: `Hello, I am AI Educational Bot, Your AI Tutor for Network Subjects?
 
 Feel free to ask me about:
 

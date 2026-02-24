@@ -75,7 +75,7 @@ const StudentChat = () => {
     if (!isLoadingCourses) {
       setMessages([{
         role: 'assistant',
-        content: `Hello! I'm EduBot, your AI Tutor for **CCNA 200-301**.
+        content: `Hello, I am AI Educational Bot, Your AI Tutor for Network Subjects?
 
 You can select a specific course to focus on, or ask general networking questions and I'll help you across all materials.
 
