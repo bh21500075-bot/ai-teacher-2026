@@ -23,16 +23,7 @@ const GuestChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hello, I am AI Educational Bot, Your AI Tutor for Network Subjects?
-
-Feel free to ask me about:
-
-- Our colleges and academic programs
-- Admission requirements and procedures
-- Campus facilities and student life
-- Contact information
-
-How can I assist you today?`
+      content: `Hi! Welcome to the University of Technology Bahrain (UTB), I am here to help you about university, colleges programs and campus facilities. Feel free to ask me about our colleges and academic programs, admission requirements and procedures, campus facilities and student life and further more.`
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
