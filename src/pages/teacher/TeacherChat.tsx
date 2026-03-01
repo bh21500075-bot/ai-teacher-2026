@@ -59,8 +59,8 @@ const TeacherChat = () => {
     if (!isLoadingCourses) {
       setMessages([{
         role: 'assistant',
-        content: `Hello, I am AI Educational Bot, Your AI Tutor for Network Subjects? I can help you with:
-
+      content: `Hello, I am AI Educational Robot.
+I can help you with:
 
 - **Lesson Feedback**: Get suggestions for improving your lesson content
 - **Assignment Review**: Get AI feedback on assignment designs
