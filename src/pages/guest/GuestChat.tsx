@@ -23,7 +23,15 @@ const GuestChat = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: `Hi! Welcome to the University of Technology Bahrain (UTB), I am here to help you about university, colleges programs and campus facilities. Feel free to ask me about our colleges and academic programs, admission requirements and procedures, campus facilities and student life and further more.`
+      content: `👋 **Hi! Welcome to the University of Technology Bahrain (UTB)**
+
+I'm here to help you learn about our university. Feel free to ask me about:
+
+- 🎓 **Colleges & Academic Programs**
+- 📋 **Admission Requirements & Procedures**
+- 🏫 **Campus Facilities & Student Life**
+
+How can I assist you today?`
     }
   ]);
   const [isLoading, setIsLoading] = useState(false);
