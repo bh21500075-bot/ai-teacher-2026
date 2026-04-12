@@ -281,15 +281,39 @@ serve(async (req) => {
           const supabase = createClient(supabaseUrl, supabaseKey);
           
           // Search for relevant document sections using full-text search
-          const searchQuery = lastUserMessage.content.toLowerCase();
-          const { data: documents, error } = await supabase
+          // Filter out common stop words and keep meaningful keywords
+          const stopWords = new Set(['what','are','the','is','in','of','a','an','to','for','and','or','how','can','do','does','i','me','my','about','this','that','it','all','with','from','on','at','by','be','was','were','been','being','have','has','had','will','would','could','should','may','might','which','who','whom','their','there','they','them','your','you','please','tell','give','show','list','describe','explain']);
+          const keywords = lastUserMessage.content.toLowerCase()
+            .replace(/[?!.,;:'"()]/g, '')
+            .split(/\s+/)
+            .filter((w: string) => w.length > 1 && !stopWords.has(w))
+            .slice(0, 8);
+          
+          const searchTerms = keywords.length > 0 ? keywords.join(' | ') : lastUserMessage.content.split(' ').slice(0, 5).join(' | ');
+          
+          // Try full-text search first
+          let { data: documents, error } = await supabase
             .from('guest_documents')
             .select('document_title, section_title, content_text')
-            .textSearch('content_text', searchQuery.split(' ').slice(0, 5).join(' | '), {
+            .textSearch('content_text', searchTerms, {
               type: 'websearch',
               config: 'english'
             })
-            .limit(3);
+            .limit(5);
+
+          // Fallback: if no results, try ILIKE search with top keywords
+          if ((!documents || documents.length === 0) && keywords.length > 0) {
+            const ilikeTerm = `%${keywords[0]}%`;
+            const fallback = await supabase
+              .from('guest_documents')
+              .select('document_title, section_title, content_text')
+              .ilike('content_text', ilikeTerm)
+              .limit(5);
+            if (!fallback.error && fallback.data) {
+              documents = fallback.data;
+              error = null;
+            }
+          }
 
           if (!error && documents && documents.length > 0) {
             additionalContext = '\n\n=== RELEVANT DOCUMENT SECTIONS ===\n';
