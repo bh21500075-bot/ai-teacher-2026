@@ -17,6 +17,60 @@ function getCorsHeaders(origin: string | null) {
   };
 }
 
+const PROGRAM_ALIASES: Record<string, string[]> = {
+  BSAF: ['bsaf', 'accounting and finance', 'bachelor of science in accounting and finance'],
+  BSBI: ['bsbi', 'business informatics', 'bachelor of science in business informatics'],
+  BSCS: ['bscs', 'computer science', 'bachelor of science in computer science'],
+  BSIB: ['bsib', 'international business', 'bachelor of science in international business'],
+  BSIE: ['bsie', 'informatics engineering', 'bachelor of science in informatics engineering'],
+  BSIT: ['bsit', 'information technology', 'bachelor of science in information technology'],
+  BSME: ['bsme', 'mechatronics engineering', 'bachelor of science in mechatronics engineering'],
+  BSENE: ['bsene', 'bscene', 'environmental engineering', 'bachelor of science in environmental engineering'],
+  MBA: ['mba', 'master of business administration'],
+  MSDM: ['msdm', 'digital marketing', 'master of science in digital marketing'],
+  MSLSCM: ['mslscm', 'logistics and supply chain management', 'master of science in logistics and supply chain management'],
+};
+
+const YEAR_PATTERNS = [
+  { label: 'First Year', patterns: [/\b1st\b/, /\bfirst year\b/, /\byear 1\b/, /\byear one\b/] },
+  { label: 'Second Year', patterns: [/\b2nd\b/, /\bsecond year\b/, /\byear 2\b/, /\byear two\b/] },
+  { label: 'Third Year', patterns: [/\b3rd\b/, /\bthird year\b/, /\byear 3\b/, /\byear three\b/] },
+  { label: 'Fourth Year', patterns: [/\b4th\b/, /\bfourth year\b/, /\byear 4\b/, /\byear four\b/] },
+];
+
+function normalizeMessageContent(content: string) {
+  return content.toLowerCase().replace(/[^a-z0-9\s-]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function detectProgramme(content: string) {
+  const normalized = normalizeMessageContent(content);
+
+  for (const [code, aliases] of Object.entries(PROGRAM_ALIASES)) {
+    if (aliases.some((alias) => normalized.includes(alias))) {
+      return { code, aliases };
+    }
+  }
+
+  return null;
+}
+
+function detectYearLabel(content: string) {
+  const normalized = normalizeMessageContent(content);
+
+  for (const year of YEAR_PATTERNS) {
+    if (year.patterns.some((pattern) => pattern.test(normalized))) {
+      return year.label;
+    }
+  }
+
+  return null;
+}
+
+function isCourseListRequest(content: string) {
+  const normalized = normalizeMessageContent(content);
+  return ['course', 'courses', 'study plan', 'curriculum', 'subjects', 'modules', 'trimester'].some((term) => normalized.includes(term));
+}
+
 const UTB_BASE_KNOWLEDGE = `
 === UNIVERSITY OF TECHNOLOGY BAHRAIN (UTB) - OFFICIAL INFORMATION ===
 
@@ -286,35 +340,85 @@ serve(async (req) => {
         
         if (supabaseUrl && supabaseKey) {
           const supabase = createClient(supabaseUrl, supabaseKey);
+          const userQuery = String(lastUserMessage.content || '');
+          const detectedProgramme = detectProgramme(userQuery);
+          const detectedYear = detectYearLabel(userQuery);
+          const wantsCourseList = isCourseListRequest(userQuery);
+          let documents:
+            | Array<{ document_title: string; section_title: string | null; content_text: string }>
+            | null = null;
+          let error: unknown = null;
+          let keywords: string[] = [];
+
+          if (detectedProgramme) {
+            const programmeFilters = detectedProgramme.aliases
+              .map((alias) => alias.replace(/'/g, "''"))
+              .flatMap((alias) => [
+                `document_title.ilike.%${alias}%`,
+                `document_name.ilike.%${alias}%`,
+              ])
+              .join(',');
+
+            let targetedQuery = supabase
+              .from('guest_documents')
+              .select('document_title, section_title, content_text')
+              .or(programmeFilters)
+              .limit(wantsCourseList ? 8 : 5);
+
+            if (detectedYear) {
+              const yearTerm = detectedYear.replace(/'/g, "''");
+              targetedQuery = targetedQuery.ilike('section_title', `%${yearTerm}%`);
+            } else if (wantsCourseList) {
+              targetedQuery = targetedQuery.ilike('section_title', '%Study Plan%');
+            }
+
+            const targetedResult = await targetedQuery;
+            if (!targetedResult.error && targetedResult.data?.length) {
+              documents = targetedResult.data;
+            } else {
+              error = targetedResult.error;
+            }
+          }
           
-          // Search for relevant document sections using full-text search
-          // Filter out common stop words and keep meaningful keywords
-          const stopWords = new Set(['what','are','the','is','in','of','a','an','to','for','and','or','how','can','do','does','i','me','my','about','this','that','it','all','with','from','on','at','by','be','was','were','been','being','have','has','had','will','would','could','should','may','might','which','who','whom','their','there','they','them','your','you','please','tell','give','show','list','describe','explain']);
-          const keywords = lastUserMessage.content.toLowerCase()
-            .replace(/[?!.,;:'"()]/g, '')
-            .split(/\s+/)
-            .filter((w: string) => w.length > 1 && !stopWords.has(w))
-            .slice(0, 8);
-          
-          const searchTerms = keywords.length > 0 ? keywords.join(' | ') : lastUserMessage.content.split(' ').slice(0, 5).join(' | ');
-          
-          // Try full-text search first
-          let { data: documents, error } = await supabase
-            .from('guest_documents')
-            .select('document_title, section_title, content_text')
-            .textSearch('content_text', searchTerms, {
-              type: 'websearch',
-              config: 'english'
-            })
-            .limit(5);
+          if (!documents || documents.length === 0) {
+            // Search for relevant document sections using full-text search
+            // Filter out common stop words and keep meaningful keywords
+            const stopWords = new Set(['what','are','the','is','in','of','a','an','to','for','and','or','how','can','do','does','i','me','my','about','this','that','it','all','with','from','on','at','by','be','was','were','been','being','have','has','had','will','would','could','should','may','might','which','who','whom','their','there','they','them','your','you','please','tell','give','show','list','describe','explain']);
+            const enrichedQuery = [
+              userQuery,
+              detectedProgramme?.code,
+              detectedYear,
+            ].filter(Boolean).join(' ');
+
+            keywords = normalizeMessageContent(enrichedQuery)
+              .split(/\s+/)
+              .filter((w: string) => w.length > 1 && !stopWords.has(w))
+              .slice(0, 12);
+            
+            const searchTerms = keywords.length > 0 ? keywords.join(' | ') : normalizeMessageContent(userQuery).split(' ').slice(0, 8).join(' | ');
+            
+            const searchResult = await supabase
+              .from('guest_documents')
+              .select('document_title, section_title, content_text')
+              .textSearch('content_text', searchTerms, {
+                type: 'websearch',
+                config: 'english'
+              })
+              .limit(5);
+
+            documents = searchResult.data;
+            error = searchResult.error;
+          }
 
           // Fallback: if no results, try ILIKE search with top keywords
           if ((!documents || documents.length === 0) && keywords.length > 0) {
-            const ilikeTerm = `%${keywords[0]}%`;
+            const ilikeTerms = [...new Set(keywords.slice(0, 3))]
+              .map((keyword) => `content_text.ilike.%${keyword}%,section_title.ilike.%${keyword}%,document_title.ilike.%${keyword}%`)
+              .join(',');
             const fallback = await supabase
               .from('guest_documents')
               .select('document_title, section_title, content_text')
-              .ilike('content_text', ilikeTerm)
+              .or(ilikeTerms)
               .limit(5);
             if (!fallback.error && fallback.data) {
               documents = fallback.data;
@@ -353,6 +457,7 @@ IMPORTANT RULES:
 - You are NOT a course tutor - do NOT answer specific course content questions (like explaining programming concepts, solving math problems, or explaining business theories)
 - If someone asks about specific course materials, assignments, or course-related academic questions, politely explain:
   "To access course materials and get help with specific courses, please log in as a registered student. As a guest, I can only provide general information about the university, its programmes, and admissions."
+- If a visitor asks for a programme study plan, year-wise courses, trimester-wise courses, or curriculum details (for example, "3rd year courses of BSIE"), provide the full available course list from the matched programme section, keeping course codes and titles exactly as written and grouping them by trimester when possible
 - Stay focused on university information only
 - Be welcoming and helpful to prospective students and visitors
 - Provide accurate information based on the official documents above
@@ -393,7 +498,7 @@ COMMUNICATION STYLE:
         body: JSON.stringify({
           contents: geminiMessages,
           systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+          generationConfig: { temperature: 0.4, maxOutputTokens: 8192 },
         }),
       }
     );
