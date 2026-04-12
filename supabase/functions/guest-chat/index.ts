@@ -348,6 +348,7 @@ serve(async (req) => {
             | Array<{ document_title: string; section_title: string | null; content_text: string }>
             | null = null;
           let error: unknown = null;
+          let keywords: string[] = [];
 
           if (detectedProgramme) {
             const programmeFilters = detectedProgramme.aliases
@@ -389,7 +390,7 @@ serve(async (req) => {
               detectedYear,
             ].filter(Boolean).join(' ');
 
-            const keywords = normalizeMessageContent(enrichedQuery)
+            keywords = normalizeMessageContent(enrichedQuery)
               .split(/\s+/)
               .filter((w: string) => w.length > 1 && !stopWords.has(w))
               .slice(0, 12);
