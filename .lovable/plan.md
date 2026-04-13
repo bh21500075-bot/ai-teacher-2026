@@ -1,48 +1,50 @@
 
 
-# Reformat BSEnE Study Plan to Professional Format
+# Reformat BSAF Study Plan to Professional Format
 
 ## Objective
-Replace the 6 existing BSEnE entries in `guest_documents` with professionally formatted study plan data extracted from the uploaded document, matching the BSIE/BSME format: `CODE Title (X Lec, X Lab, X Credits) Prereq: XXX`
+Extract all course data from the uploaded BSAF Programme Specifications document and insert professionally formatted study plan entries into the `guest_documents` table, matching the BSIE/BSME/BSEnE format.
 
 ## Current State
-- 6 BSEnE rows exist with basic/unformatted content (IDs identified)
-- New document parsed successfully — contains full study plan tables with Course Code, Title, Lec Hrs, Lab Hrs, Credit Units, and Prerequisites for all 4 years + foundation
+- Document parsed successfully (5,351 lines) — contains full study plan tables
+- **No existing BSAF entries** in the database (clean insert, no deletion needed)
+- Already extracted: Foundation Year, Year 1, Year 2 (partial Year 2 Third Trimester seen)
+- Still need to read: remainder of Year 2 T3, Year 3, Year 4
 
 ## Steps
 
 ### Step 1: Finish extracting all course data
-Continue reading the parsed document (lines 800-2000+) to capture Years 2, 3, and 4 course tables.
+Read lines 1400-2200+ from the parsed document to capture Years 3 and 4 course tables with codes, titles, lec/lab hours, credits, and prerequisites.
 
-### Step 2: Delete old BSEnE study plan entries
-```sql
-DELETE FROM guest_documents 
-WHERE document_name ILIKE '%BSEnE%' 
-AND section_title LIKE 'Study Plan%';
+### Step 2: Insert professionally formatted entries
+Insert rows into `guest_documents` with:
+- `document_name`: `BSAF-Programme-Specifications-AY2022-2023.docx`
+- `document_title`: `BSAF Programme Specifications AY 2022-2023`
+- Sections: Programme Overview, Foundation Year, Year 1, Year 2, Year 3, Year 4
+
+**Format per course:**
+```
+CODE Title (X Lec, X Lab, X Credits) Prereq: XXX
 ```
 
-### Step 3: Insert reformatted entries
-Insert 6 new rows (Foundation, Year 1, Year 2, Year 3, Year 4, Electives if any) with content in professional format:
-
-**Example output format:**
+**Example from extracted data:**
 ```
-FIRST YEAR - FIRST TRIMESTER:
-MATH611 College Algebra (3 Lec, 0 Lab, 3 Credits) Prereq: None
-ENGG601 Engineering Drawing (2 Lec, 2 Lab, 3 Credits) Prereq: None
-CHEM611 General Chemistry (2 Lec, 2 Lab, 3 Credits) Prereq: None
-ENGL611 English Communication Skills 1 (3 Lec, 0 Lab, 3 Credits) Prereq: None
-CSCI611A Introduction to Computing (2 Lec, 2 Lab, 3 Credits) Prereq: None
-SOCI600 Sociology (3 Lec, 0 Lab, 3 Credits) Prereq: None
-EUTH400 Euthenics 1 (1 Lec, 0 Lab, 0 Credits) Prereq: None
+SECOND YEAR - FIRST TRIMESTER:
+MGT703 Business & Technology 3 (3 Lec, 0 Lab, 3 Credits) Prereq: MGT605
+ACC704 Management Accounting 2 (3 Lec, 0 Lab, 3 Credits) Prereq: ACC603
+FIN711 Introduction to FinTech (3 Lec, 0 Lab, 3 Credits) Prereq: None
+ENGL701 Business Communication (3 Lec, 0 Lab, 3 Credits) Prereq: ENGL611
+COMP721 Database Management Systems (2 Lec, 2 Lab, 3 Credits) Prereq: COMP613
+ECO602 Macroeconomics (3 Lec, 0 Lab, 3 Credits) Prereq: ECO601
 Total: 18 Credits
 ```
 
-### Step 4: Verify
-Query the updated rows to confirm correct formatting and completeness.
+### Step 3: Verify
+Query `guest_documents` to confirm all BSAF rows are present with correct formatting.
 
-## Technical Details
-- Uses database insert tool for DELETE + INSERT (no migration needed)
-- Document name: `BSEnE-Programme-Specifications-AY2022-2023.docx`
-- Document title: `BSEnE Programme Specifications AY 2022-2023`
-- No code changes required — guest-chat edge function already searches `guest_documents`
+## Key Details
+- Programme: Bachelor of Science in Accounting and Finance (BSAF)
+- NQF Level 8, 540 NQF Credits (180 ACS Credits)
+- College of Administrative and Financial Sciences (CAFS)
+- No code changes needed — guest-chat edge function already searches `guest_documents`
 
