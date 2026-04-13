@@ -476,49 +476,55 @@ COMMUNICATION STYLE:
       parts: [{ text: msg.content }]
     }));
 
-    const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 4): Promise<Response> => {
-      for (let i = 0; i < maxRetries; i++) {
-        const res = await fetch(url, options);
-        if (res.status === 429 || res.status === 503) {
-          const wait = Math.pow(2, i) * 1000 + Math.random() * 500;
-          console.log(`Gemini API returned ${res.status}, retrying in ${Math.round(wait)}ms (attempt ${i + 1}/${maxRetries})`);
-          await res.text(); // consume body
-          await new Promise(r => setTimeout(r, wait));
-          continue;
+    // Try multiple Gemini models with fallback
+    const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+    let aiResponse = '';
+    let success = false;
+
+    for (const model of models) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: controller.signal,
+            body: JSON.stringify({
+              contents: geminiMessages,
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              generationConfig: { temperature: 0.4, maxOutputTokens: 8192 },
+            }),
+          }
+        );
+
+        clearTimeout(timeout);
+
+        if (response.ok) {
+          const data = await response.json();
+          aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (aiResponse) {
+            success = true;
+            break;
+          }
+        } else {
+          const errorText = await response.text();
+          console.log(`Model ${model} returned ${response.status}, trying next...`);
         }
-        return res;
+      } catch (err) {
+        console.log(`Model ${model} failed: ${err instanceof Error ? err.message : 'unknown'}, trying next...`);
       }
-      // All retries exhausted – return a fallback instead of throwing
-      return new Response('Service temporarily unavailable', { status: 503 });
-    };
+    }
 
-    const response = await fetchWithRetry(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: geminiMessages,
-          systemInstruction: { parts: [{ text: systemPrompt }] },
-          generationConfig: { temperature: 0.4, maxOutputTokens: 8192 },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Gemini API error:', response.status, errorText);
-      // Return a friendly fallback instead of throwing
+    if (!success || !aiResponse) {
       const fallbackMsg = "I'm sorry, the AI service is temporarily unavailable. Please try again in a moment. In the meantime, you can browse our university information using the tabs above, or visit www.utb.edu.bh for more details.";
       return new Response(
         JSON.stringify({ response: fallbackMsg, fallback: true }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    const data = await response.json();
-    const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 
-      "I apologize, I couldn't generate a response. Please try again.";
 
     return new Response(
       JSON.stringify({ response: aiResponse }),
