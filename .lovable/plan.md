@@ -1,45 +1,48 @@
 
 
-# Add 11 Programme Specification Documents to Guest AI Knowledge Base
+# Reformat BSEnE Study Plan to Professional Format
 
-## Overview
-Parse all 11 uploaded programme specification DOCX files (8 undergraduate + 3 postgraduate) and insert them into the `guest_documents` table, so the guest chat AI can answer detailed questions about study plans, course structures, credit hours, and programme details.
+## Objective
+Replace the 6 existing BSEnE entries in `guest_documents` with professionally formatted study plan data extracted from the uploaded document, matching the BSIE/BSME format: `CODE Title (X Lec, X Lab, X Credits) Prereq: XXX`
 
-## Documents to Process
-
-**Undergraduate (8):**
-1. BSAF - Accounting & Finance (AY 2022-2023)
-2. BSBI - Business Informatics (AY 2021-2022)
-3. BSCS - Computer Science (AY 2022-2023)
-4. BSEnE - Environmental Engineering (AY 2022-2023)
-5. BSIB - International Business (AY 2021-2022)
-6. BSIE - Informatics Engineering (AY 2022-2023)
-7. BSIT - Information Technology (AY 2022-2023)
-8. BSME - Mechatronics Engineering (AY 2019-2020)
-
-**Postgraduate (3):**
-9. MBA - Master of Business Administration (AY 2021-2022)
-10. MSDM - Master of Science in Digital Marketing (AY 2024-2025)
-11. MSLSCM - Master of Science in Logistics & Supply Chain Management (AY 2024-2025)
+## Current State
+- 6 BSEnE rows exist with basic/unformatted content (IDs identified)
+- New document parsed successfully — contains full study plan tables with Course Code, Title, Lec Hrs, Lab Hrs, Credit Units, and Prerequisites for all 4 years + foundation
 
 ## Steps
 
-### Step 1: Parse all 11 documents
-Use `document--parse_document` to extract text from each DOCX file.
+### Step 1: Finish extracting all course data
+Continue reading the parsed document (lines 800-2000+) to capture Years 2, 3, and 4 course tables.
 
-### Step 2: Insert into `guest_documents` table
-For each document, chunk content into sections (Programme Overview, Study Plan, Course Descriptions, Learning Outcomes, etc.) and insert via the database insert tool. Each row will have:
-- `document_name`: filename
-- `document_title`: e.g. "BSCS Programme Specifications AY 2022-2023"
-- `section_title`: e.g. "Study Plan", "Programme Aims"
-- `content_text`: the section text
+### Step 2: Delete old BSEnE study plan entries
+```sql
+DELETE FROM guest_documents 
+WHERE document_name ILIKE '%BSEnE%' 
+AND section_title LIKE 'Study Plan%';
+```
 
-### Step 3: Verify
-Query the `guest_documents` table to confirm all new rows are present and searchable.
+### Step 3: Insert reformatted entries
+Insert 6 new rows (Foundation, Year 1, Year 2, Year 3, Year 4, Electives if any) with content in professional format:
+
+**Example output format:**
+```
+FIRST YEAR - FIRST TRIMESTER:
+MATH611 College Algebra (3 Lec, 0 Lab, 3 Credits) Prereq: None
+ENGG601 Engineering Drawing (2 Lec, 2 Lab, 3 Credits) Prereq: None
+CHEM611 General Chemistry (2 Lec, 2 Lab, 3 Credits) Prereq: None
+ENGL611 English Communication Skills 1 (3 Lec, 0 Lab, 3 Credits) Prereq: None
+CSCI611A Introduction to Computing (2 Lec, 2 Lab, 3 Credits) Prereq: None
+SOCI600 Sociology (3 Lec, 0 Lab, 3 Credits) Prereq: None
+EUTH400 Euthenics 1 (1 Lec, 0 Lab, 0 Credits) Prereq: None
+Total: 18 Credits
+```
+
+### Step 4: Verify
+Query the updated rows to confirm correct formatting and completeness.
 
 ## Technical Details
-- The `guest_documents` table only allows SELECT publicly; inserts use the database insert tool (service role)
-- Content chunked into ~2000-5000 character sections for optimal search relevance
-- The existing `guest-chat` edge function already searches `guest_documents` with full-text search -- no code changes needed
-- New documents will automatically be available for AI responses once inserted
+- Uses database insert tool for DELETE + INSERT (no migration needed)
+- Document name: `BSEnE-Programme-Specifications-AY2022-2023.docx`
+- Document title: `BSEnE Programme Specifications AY 2022-2023`
+- No code changes required — guest-chat edge function already searches `guest_documents`
 
