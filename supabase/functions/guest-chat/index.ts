@@ -323,10 +323,12 @@ serve(async (req) => {
       );
     }
 
-    const apiKey = Deno.env.get('GEMINI_API_KEY');
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY not configured');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!lovableApiKey && !geminiApiKey) {
+      throw new Error('No API key configured');
     }
+    const useLovableGateway = !!lovableApiKey;
 
     // Get the user's last message for context-aware search
     const lastUserMessage = messages.filter((m: { role: string }) => m.role === 'user').pop();
