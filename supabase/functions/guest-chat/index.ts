@@ -476,18 +476,20 @@ COMMUNICATION STYLE:
       parts: [{ text: msg.content }]
     }));
 
-    const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 3): Promise<Response> => {
+    const fetchWithRetry = async (url: string, options: RequestInit, maxRetries = 4): Promise<Response> => {
       for (let i = 0; i < maxRetries; i++) {
         const res = await fetch(url, options);
-        if (res.status === 429) {
-          const wait = Math.pow(2, i) * 1000;
-          // Rate limited, retrying
+        if (res.status === 429 || res.status === 503) {
+          const wait = Math.pow(2, i) * 1000 + Math.random() * 500;
+          console.log(`Gemini API returned ${res.status}, retrying in ${Math.round(wait)}ms (attempt ${i + 1}/${maxRetries})`);
+          await res.text(); // consume body
           await new Promise(r => setTimeout(r, wait));
           continue;
         }
         return res;
       }
-      throw new Error('Max retries exceeded');
+      // All retries exhausted – return a fallback instead of throwing
+      return new Response('Service temporarily unavailable', { status: 503 });
     };
 
     const response = await fetchWithRetry(
@@ -505,8 +507,13 @@ COMMUNICATION STYLE:
 
     if (!response.ok) {
       const errorText = await response.text();
-      // Gemini API error
-      throw new Error(`Gemini API error: ${response.status}`);
+      console.error('Gemini API error:', response.status, errorText);
+      // Return a friendly fallback instead of throwing
+      const fallbackMsg = "I'm sorry, the AI service is temporarily unavailable. Please try again in a moment. In the meantime, you can browse our university information using the tabs above, or visit www.utb.edu.bh for more details.";
+      return new Response(
+        JSON.stringify({ response: fallbackMsg, fallback: true }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const data = await response.json();
