@@ -243,7 +243,11 @@ export function useVoiceChat() {
       });
 
       if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      if (data?.fallback || data?.error) {
+        console.warn('TTS unavailable:', data?.error);
+        setIsPlaying(false);
+        return;
+      }
 
       // Create audio from base64
       const audioContent = data.audioContent;
