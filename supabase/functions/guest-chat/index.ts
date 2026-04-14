@@ -365,9 +365,11 @@ serve(async (req) => {
               .or(programmeFilters)
               .limit(wantsCourseList ? 8 : 5);
 
-            if (detectedYear) {
-              const yearTerm = detectedYear.replace(/'/g, "''");
-              targetedQuery = targetedQuery.ilike('section_title', `%${yearTerm}%`);
+            if (detectedYearInfo) {
+              const yearFilters = detectedYearInfo.altLabels
+                .map((l) => `section_title.ilike.%${l.replace(/'/g, "''")}%`)
+                .join(',');
+              targetedQuery = targetedQuery.or(yearFilters);
             } else if (wantsCourseList) {
               targetedQuery = targetedQuery.ilike('section_title', '%Study Plan%');
             }
