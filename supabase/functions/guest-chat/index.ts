@@ -32,10 +32,10 @@ const PROGRAM_ALIASES: Record<string, string[]> = {
 };
 
 const YEAR_PATTERNS = [
-  { label: 'First Year', patterns: [/\b1st\b/, /\bfirst year\b/, /\byear 1\b/, /\byear one\b/] },
-  { label: 'Second Year', patterns: [/\b2nd\b/, /\bsecond year\b/, /\byear 2\b/, /\byear two\b/] },
-  { label: 'Third Year', patterns: [/\b3rd\b/, /\bthird year\b/, /\byear 3\b/, /\byear three\b/] },
-  { label: 'Fourth Year', patterns: [/\b4th\b/, /\bfourth year\b/, /\byear 4\b/, /\byear four\b/] },
+  { label: 'Year 1', altLabels: ['First Year', 'Year 1'], patterns: [/\b1st\b/, /\bfirst year\b/, /\byear 1\b/, /\byear one\b/] },
+  { label: 'Year 2', altLabels: ['Second Year', 'Year 2'], patterns: [/\b2nd\b/, /\bsecond year\b/, /\byear 2\b/, /\byear two\b/] },
+  { label: 'Year 3', altLabels: ['Third Year', 'Year 3'], patterns: [/\b3rd\b/, /\bthird year\b/, /\byear 3\b/, /\byear three\b/] },
+  { label: 'Year 4', altLabels: ['Fourth Year', 'Year 4'], patterns: [/\b4th\b/, /\bfourth year\b/, /\byear 4\b/, /\byear four\b/] },
 ];
 
 function normalizeMessageContent(content: string) {
