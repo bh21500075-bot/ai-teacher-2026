@@ -389,7 +389,7 @@ serve(async (req) => {
             const enrichedQuery = [
               userQuery,
               detectedProgramme?.code,
-              detectedYear,
+              detectedYearInfo?.label,
             ].filter(Boolean).join(' ');
 
             keywords = normalizeMessageContent(enrichedQuery)
