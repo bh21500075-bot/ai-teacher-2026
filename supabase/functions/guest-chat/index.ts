@@ -54,12 +54,12 @@ function detectProgramme(content: string) {
   return null;
 }
 
-function detectYearLabel(content: string) {
+function detectYearInfo(content: string) {
   const normalized = normalizeMessageContent(content);
 
   for (const year of YEAR_PATTERNS) {
     if (year.patterns.some((pattern) => pattern.test(normalized))) {
-      return year.label;
+      return year;
     }
   }
 
