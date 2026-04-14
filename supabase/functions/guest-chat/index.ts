@@ -32,10 +32,10 @@ const PROGRAM_ALIASES: Record<string, string[]> = {
 };
 
 const YEAR_PATTERNS = [
-  { label: 'First Year', patterns: [/\b1st\b/, /\bfirst year\b/, /\byear 1\b/, /\byear one\b/] },
-  { label: 'Second Year', patterns: [/\b2nd\b/, /\bsecond year\b/, /\byear 2\b/, /\byear two\b/] },
-  { label: 'Third Year', patterns: [/\b3rd\b/, /\bthird year\b/, /\byear 3\b/, /\byear three\b/] },
-  { label: 'Fourth Year', patterns: [/\b4th\b/, /\bfourth year\b/, /\byear 4\b/, /\byear four\b/] },
+  { label: 'Year 1', altLabels: ['First Year', 'Year 1'], patterns: [/\b1st\b/, /\bfirst year\b/, /\byear 1\b/, /\byear one\b/] },
+  { label: 'Year 2', altLabels: ['Second Year', 'Year 2'], patterns: [/\b2nd\b/, /\bsecond year\b/, /\byear 2\b/, /\byear two\b/] },
+  { label: 'Year 3', altLabels: ['Third Year', 'Year 3'], patterns: [/\b3rd\b/, /\bthird year\b/, /\byear 3\b/, /\byear three\b/] },
+  { label: 'Year 4', altLabels: ['Fourth Year', 'Year 4'], patterns: [/\b4th\b/, /\bfourth year\b/, /\byear 4\b/, /\byear four\b/] },
 ];
 
 function normalizeMessageContent(content: string) {
@@ -54,12 +54,12 @@ function detectProgramme(content: string) {
   return null;
 }
 
-function detectYearLabel(content: string) {
+function detectYearInfo(content: string) {
   const normalized = normalizeMessageContent(content);
 
   for (const year of YEAR_PATTERNS) {
     if (year.patterns.some((pattern) => pattern.test(normalized))) {
-      return year.label;
+      return year;
     }
   }
 
@@ -342,7 +342,7 @@ serve(async (req) => {
           const supabase = createClient(supabaseUrl, supabaseKey);
           const userQuery = String(lastUserMessage.content || '');
           const detectedProgramme = detectProgramme(userQuery);
-          const detectedYear = detectYearLabel(userQuery);
+          const detectedYearInfo = detectYearInfo(userQuery);
           const wantsCourseList = isCourseListRequest(userQuery);
           let documents:
             | Array<{ document_title: string; section_title: string | null; content_text: string }>
@@ -365,9 +365,11 @@ serve(async (req) => {
               .or(programmeFilters)
               .limit(wantsCourseList ? 8 : 5);
 
-            if (detectedYear) {
-              const yearTerm = detectedYear.replace(/'/g, "''");
-              targetedQuery = targetedQuery.ilike('section_title', `%${yearTerm}%`);
+            if (detectedYearInfo) {
+              const yearFilters = detectedYearInfo.altLabels
+                .map((l) => `section_title.ilike.%${l.replace(/'/g, "''")}%`)
+                .join(',');
+              targetedQuery = targetedQuery.or(yearFilters);
             } else if (wantsCourseList) {
               targetedQuery = targetedQuery.ilike('section_title', '%Study Plan%');
             }
@@ -387,7 +389,7 @@ serve(async (req) => {
             const enrichedQuery = [
               userQuery,
               detectedProgramme?.code,
-              detectedYear,
+              detectedYearInfo?.label,
             ].filter(Boolean).join(' ');
 
             keywords = normalizeMessageContent(enrichedQuery)
