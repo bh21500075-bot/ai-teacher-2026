@@ -342,7 +342,7 @@ serve(async (req) => {
           const supabase = createClient(supabaseUrl, supabaseKey);
           const userQuery = String(lastUserMessage.content || '');
           const detectedProgramme = detectProgramme(userQuery);
-          const detectedYear = detectYearLabel(userQuery);
+          const detectedYearInfo = detectYearInfo(userQuery);
           const wantsCourseList = isCourseListRequest(userQuery);
           let documents:
             | Array<{ document_title: string; section_title: string | null; content_text: string }>
