@@ -4,9 +4,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { GraduationCap, Award } from 'lucide-react';
 
 const bachelorPrograms = [
-  { name: 'Informatics Engineering', abbr: 'BSInfE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Mechatronics Engineering', abbr: 'BSMecE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Environmental Engineering', abbr: 'BSEnvE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Informatics Engineering', abbr: 'BSIE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Mechatronics Engineering', abbr: 'BSME', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Environmental Engineering', abbr: 'BSEnE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
   { name: 'Information Technology', abbr: 'BSIT', college: 'Computer Studies', credits: 132, duration: '4 years', accreditation: 'ABET' },
   { name: 'Computer Science', abbr: 'BSCS', college: 'Computer Studies', credits: 132, duration: '4 years', accreditation: 'ABET' },
   { name: 'Accounting & Finance', abbr: 'BSAF', college: 'Business', credits: 126, duration: '4 years', accreditation: 'ECBE' },
