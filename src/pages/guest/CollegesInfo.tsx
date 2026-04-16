@@ -8,9 +8,9 @@ const colleges = [
     icon: Cog,
     description: 'Developing future engineers with strong theoretical foundations and practical skills in informatics, mechatronics, and environmental engineering.',
     programs: [
-      'BSInfE - Informatics Engineering',
-      'BSMecE - Mechatronics Engineering',
-      'BSEnvE - Environmental Engineering',
+      'BSIE - Informatics Engineering',
+      'BSME - Mechatronics Engineering',
+      'BSEnE - Environmental Engineering',
     ],
     accreditation: 'ABET Accredited',
     color: 'bg-orange-500'
