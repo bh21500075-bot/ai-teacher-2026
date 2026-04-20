@@ -4,18 +4,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { GraduationCap, Award } from 'lucide-react';
 
 const bachelorPrograms = [
-  { name: 'Informatics Engineering', abbr: 'BSIE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Mechatronics Engineering', abbr: 'BSME', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Environmental Engineering', abbr: 'BSEnE', college: 'Engineering', credits: 135, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Information Technology', abbr: 'BSIT', college: 'Computer Studies', credits: 132, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Computer Science', abbr: 'BSCS', college: 'Computer Studies', credits: 132, duration: '4 years', accreditation: 'ABET' },
-  { name: 'Accounting & Finance', abbr: 'BSAF', college: 'Business', credits: 126, duration: '4 years', accreditation: 'ECBE' },
-  { name: 'International Business', abbr: 'BSIB', college: 'Business', credits: 126, duration: '4 years', accreditation: 'ECBE' },
-  { name: 'Business Informatics', abbr: 'BSBI', college: 'Business', credits: 126, duration: '4 years', accreditation: 'ECBE' },
+  { name: 'Informatics Engineering', abbr: 'BSIE', college: 'Engineering', credits: 204, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Mechatronics Engineering', abbr: 'BSME', college: 'Engineering', credits: 204, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Environmental Engineering', abbr: 'BSEnE', college: 'Engineering', credits: 204, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Information Technology', abbr: 'BSIT', college: 'Computer Studies', credits: 180, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Computer Science', abbr: 'BSCS', college: 'Computer Studies', credits: 198, duration: '4 years', accreditation: 'ABET' },
+  { name: 'Accounting & Finance', abbr: 'BSAF', college: 'Business', credits: 180, duration: '4 years', accreditation: 'ECBE' },
+  { name: 'International Business', abbr: 'BSIB', college: 'Business', credits: 180, duration: '4 years', accreditation: 'ECBE' },
+  { name: 'Business Informatics', abbr: 'BSBI', college: 'Business', credits: 180, duration: '4 years', accreditation: 'ECBE' },
 ];
 
 const masterPrograms = [
-  { name: 'Master of Business Administration', abbr: 'MBA', college: 'Business', credits: 36, duration: '2 years', accreditation: 'ECBE' },
+  { name: 'Master of Business Administration', abbr: 'MBA', college: 'Business', credits: 42, duration: '2 years', accreditation: 'ECBE' },
   { name: 'MSc in Digital Marketing', abbr: 'MSDM', college: 'Business', credits: 36, duration: '2 years', accreditation: 'ECBE' },
   { name: 'MSc in Logistics and Supply Chain Management', abbr: 'MSLSCM', college: 'Business', credits: 36, duration: '2 years', accreditation: 'ECBE' },
 ];
